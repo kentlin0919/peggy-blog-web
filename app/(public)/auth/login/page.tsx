@@ -1,9 +1,84 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
+
+  // State for Login
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // State for Register
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirm, setRegConfirm] = useState('');
+  const [regTeacherCode, setRegTeacherCode] = useState('');
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    setLoginError(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      if (error) throw error;
+      
+      router.push(redirect);
+    } catch (error: any) {
+      setLoginError(error.message || '登入失敗，請稍後再試');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (regPassword !== regConfirm) {
+      setRegError('密碼不一致');
+      return;
+    }
+    
+    setRegLoading(true);
+    setRegError(null);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: regEmail,
+        password: regPassword,
+        options: {
+          data: {
+            full_name: regName,
+            teacher_code: regTeacherCode,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      alert('註冊成功！請檢查您的電子信箱以進行驗證。');
+    } catch (error: any) {
+      setRegError(error.message || '註冊失敗，請稍後再試');
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
   return (
     <div className="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden bg-background-light dark:bg-background-dark text-[#111618] dark:text-white font-display antialiased selection:bg-primary/20">
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f3f4] dark:border-b-gray-800 px-6 lg:px-10 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
@@ -77,12 +152,25 @@ export default function LoginPage() {
                 </label>
               </div>
               <div className="hidden peer-checked/login:block animate-[fadeIn_0.3s_ease-out]">
-                <form className="space-y-5">
+                <form className="space-y-5" onSubmit={handleLogin}>
+                  {loginError && (
+                    <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                      {loginError}
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="login-email">電子郵件</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">mail</span>
-                      <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="login-email" placeholder="name@example.com" type="email" />
+                      <input 
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                        id="login-email" 
+                        placeholder="name@example.com" 
+                        type="email"
+                        value={loginEmail}
+                        onChange={e => setLoginEmail(e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
                   <div className="space-y-1.5">
@@ -92,16 +180,27 @@ export default function LoginPage() {
                     </div>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock</span>
-                      <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="login-password" placeholder="••••••••" type="password" />
+                      <input 
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                        id="login-password" 
+                        placeholder="••••••••" 
+                        type="password"
+                        value={loginPassword}
+                        onChange={e => setLoginPassword(e.target.value)}
+                        required 
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <input className="rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary" id="remember" type="checkbox" />
                     <label className="text-sm text-slate-600 dark:text-gray-400" htmlFor="remember">記住我的登入資訊</label>
                   </div>
-                  <button className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] flex items-center justify-center gap-2">
-                    <span>立即登入</span>
-                    <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  <button 
+                    className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loginLoading}
+                  >
+                    <span>{loginLoading ? '登入中...' : '立即登入'}</span>
+                    {!loginLoading && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
                   </button>
                   <div className="relative my-8">
                     <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100 dark:border-gray-700"></div></div>
@@ -110,11 +209,11 @@ export default function LoginPage() {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <button className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
                       <img alt="Google" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuActoeFgeACj5j868KbNSODvUCcGssflFs-JuMbBA6Z9_5GmYHHSmhbVJvH62yPMnq0maPe7jF-MqhlLYWHLad5nueGKj7b5RrnLEkF93gY6ug2cg6JfbY-jv470WnHyi-S0q8bTwoyF6EkR9bcT5XOzHJOju8jmaCXr_1p0012XkfHDpyAvT0bYqVxIf6eIAU8wX1ljJ8WeMW7Ok5FT81l1Z001OJE6tw8iYd8L-s6Bw3NG05LqqkzFDpAAAVGdPBiqIuxplawacY" />
                       <span className="hidden sm:inline">Google</span>
                     </button>
-                    <button className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
                       <img alt="Facebook" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_03tU9o1bP6_58eLpazAdhvnX6O--ihoUf_LKHLZTp2XzLIWVDIGdofwUaaksnVd7ArVaCNn2yxiPz0wF96A-82vNP498VrC-dl75tomPDJT1R3OxU0IbLZMqgA33j-vBTZFNweQZPhI_rhqeU8GQg3QRAFeNqD6gcYewyAzHEpXqVdKcTspsztXHS8vIklalZCmYnZQcWPBW3Ue6fcTlqBjtv8qISsb8O13_oGDazHJdBBbl45Kt-ryyiEGYAu5_8zYwZtKq0YU" />
                       <span className="hidden sm:inline">Facebook</span>
                     </button>
@@ -122,19 +221,40 @@ export default function LoginPage() {
                 </form>
               </div>
               <div className="hidden peer-checked/register:block animate-[fadeIn_0.3s_ease-out]">
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleRegister}>
+                  {regError && (
+                    <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                      {regError}
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-name">姓名</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">person</span>
-                      <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="reg-name" placeholder="您的真實姓名" type="text" />
+                      <input 
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                        id="reg-name" 
+                        placeholder="您的真實姓名" 
+                        type="text"
+                        value={regName}
+                        onChange={e => setRegName(e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-email">電子郵件</label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">mail</span>
-                      <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="reg-email" placeholder="name@example.com" type="email" />
+                      <input 
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                        id="reg-email" 
+                        placeholder="name@example.com" 
+                        type="email"
+                        value={regEmail}
+                        onChange={e => setRegEmail(e.target.value)}
+                        required
+                      />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -142,25 +262,60 @@ export default function LoginPage() {
                       <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-password">設定密碼</label>
                       <div className="relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock</span>
-                        <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="reg-password" placeholder="••••••" type="password" />
+                        <input 
+                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                          id="reg-password" 
+                          placeholder="••••••" 
+                          type="password"
+                          value={regPassword}
+                          onChange={e => setRegPassword(e.target.value)}
+                          required
+                          minLength={8}
+                        />
                       </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-confirm">確認密碼</label>
                       <div className="relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock_reset</span>
-                        <input className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" id="reg-confirm" placeholder="••••••" type="password" />
+                        <input 
+                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                          id="reg-confirm" 
+                          placeholder="••••••" 
+                          type="password"
+                          value={regConfirm}
+                          onChange={e => setRegConfirm(e.target.value)}
+                          required
+                        />
                       </div>
                     </div>
                   </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-teacher-code">教師代碼</label>
+                    <div className="relative">
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">school</span>
+                      <input 
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
+                        id="reg-teacher-code" 
+                        placeholder="請輸入教師代碼" 
+                        type="text"
+                        value={regTeacherCode}
+                        onChange={e => setRegTeacherCode(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
                   <div className="flex items-start gap-2 pt-2">
-                    <input className="mt-1 rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary" id="terms" type="checkbox" />
+                    <input className="mt-1 rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary" id="terms" type="checkbox" required />
                     <label className="text-xs text-slate-600 dark:text-gray-400 leading-tight" htmlFor="terms">
                       我同意 <a className="text-primary hover:underline" href="/legal/terms">服務條款</a> 與 <a className="text-primary hover:underline" href="/legal/privacy">隱私權政策</a>
                     </label>
                   </div>
-                  <button className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] mt-4">
-                    建立帳戶
+                  <button 
+                    className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                     disabled={regLoading}
+                  >
+                    {regLoading ? '建立中...' : '建立帳戶'}
                   </button>
                 </form>
               </div>
@@ -168,20 +323,7 @@ export default function LoginPage() {
           </div>
         </div>
         <footer className="bg-white dark:bg-gray-900 border-t border-[#f0f3f4] dark:border-gray-800 py-10 px-6 lg:px-40 mt-auto hidden">
-           {/* Note: I hid this extra footer because the main page probably already has one or uses layout footer. 
-               However, the provided design has a specific simplified footer for the login page.
-               If I use PublicLayout, it might duplication. But PublicLayout (modified earlier) is just empty shell now.
-               Wait, earlier I made PublicLayout an empty shell. So this footer IS needed. 
-               But the provided HTML structure nests this footer inside the body. 
-               Let's keep it but check if it conflicts with visual design. 
-               Actually the provided HTML puts it at bottom properly.
-           */}
-           {/* Re-evaluating: The provided HTML has a footer at the bottom. 
-               My implemented PublicLayout is just {children}. 
-               So this LoginPage component is responsible for the full page including footer.
-               But wait, the design shows the footer OUTSIDE the main centering div.
-               Let's adapt.
-           */}
+           {/* Footer preserved as comment in original source */}
         </footer>
       </div>
        <footer className="bg-white dark:bg-gray-900 border-t border-[#f0f3f4] dark:border-gray-800 py-10 px-6 lg:px-40">

@@ -101,7 +101,18 @@ export async function generateStaticParams() {
 專案包含 `.github/workflows/deploy.yml`，每次推送到 `main` 分支時：
 
 1. 自動執行 `pnpm install` 與 `pnpm build`。
+   - 建置過程中會讀取 GitHub Secrets (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`) 注入環境變數。
 2. 將 `out` 資料夾部署至 GitHub Pages environment。
+
+### 5. 環境變數設定 (Environment Variables)
+
+為了讓 Supabase 在 GitHub Pages 正確運作，請在 GitHub Repository Settings 中設定以下 Secrets：
+
+1. 進入 **Settings** > **Secrets and variables** > **Actions**。
+2. 點擊 **New repository secret**。
+3. 新增以下兩組密鑰：
+   - `NEXT_PUBLIC_SUPABASE_URL`: 您的 Supabase Project URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: 您的 Supabase Project API Key (Anon)
 
 ## 功能模組詳情
 

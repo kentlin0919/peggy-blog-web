@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -10,40 +11,43 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for authentication (mock implementation for now)
-    // In a real app, you would check Supabase session or a specific cookie
-    const checkAuth = () => {
-      // For now, we simulate checking for a cookie named 'auth-token' or 'sb-access-token'
-      // or check localStorage if that's where you store it.
-      // Since we haven't fully implemented the login logic to SET this yet,
-      // this guard will block access until we do.
-      
-      const hasAuthCookie = document.cookie.split(';').some((item) => {
-        const name = item.trim().split('=')[0];
-        return name === 'auth-token' || name === 'sb-access-token';
-      });
-      
-      // Also check localStorage as a fallback/alternative
-      const hasLocalStorage = typeof window !== 'undefined' && (
-        localStorage.getItem('auth-token') || localStorage.getItem('sb-access-token')
-      );
-
-      if (hasAuthCookie || hasLocalStorage) {
-        setIsAuthenticated(true);
-      } else {
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+          router.push(loginUrl);
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error);
         setIsAuthenticated(false);
-        // Redirect to login with return URL
-        const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-        router.push(loginUrl);
+        router.push('/auth/login');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsAuthenticated(false);
+        router.push('/auth/login');
+      } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setIsAuthenticated(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router, pathname]);
 
   if (isLoading) {
-    // Render a loading state while checking auth
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
@@ -54,8 +58,5 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Only render children if authenticated
-  // If not authenticated, the useEffect hook will have triggered a redirect
-  // preventing the protected content from flashing.
   return isAuthenticated ? <>{children}</> : null;
 }

@@ -1,8 +1,54 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [teacherCode, setTeacherCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setError('密碼不一致');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            teacher_code: teacherCode,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      alert('註冊成功！請檢查您的電子信箱以進行驗證。');
+      router.push('/auth/login');
+    } catch (error: any) {
+      setError(error.message || '註冊失敗，請稍後再試');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="font-display bg-background-light dark:bg-background-dark text-[#111618] dark:text-gray-100 antialiased min-h-screen flex flex-col">
       {/* Navbar */}
@@ -50,14 +96,28 @@ export default function RegisterPage() {
               <p className="text-[#617f89] dark:text-gray-400 text-base font-normal">填寫下方資訊以開始您的假牙雕刻學習旅程。</p>
             </div>
 
-            <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-5" onSubmit={handleRegister}>
+              {error && (
+                <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-[#111618] dark:text-gray-200 mb-1.5" htmlFor="name">姓名 <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <span className="material-symbols-outlined text-[20px]">person</span>
                   </span>
-                  <input className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" id="name" name="name" placeholder="請輸入您的全名" required type="text" />
+                  <input 
+                    className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" 
+                    id="name" 
+                    name="name" 
+                    placeholder="請輸入您的全名" 
+                    required 
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
                   <p className="hidden peer-invalid:not(:placeholder-shown):block mt-1 text-xs text-pink-500">請輸入有效的姓名</p>
                 </div>
               </div>
@@ -68,7 +128,16 @@ export default function RegisterPage() {
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <span className="material-symbols-outlined text-[20px]">mail</span>
                   </span>
-                  <input className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" id="email" name="email" placeholder="name@example.com" required type="email" />
+                  <input 
+                    className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" 
+                    id="email" 
+                    name="email" 
+                    placeholder="name@example.com" 
+                    required 
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                  />
                   <p className="hidden peer-invalid:not(:placeholder-shown):block mt-1 text-xs text-pink-500">請輸入有效的電子郵件地址</p>
                   <p className="peer-invalid:not(:placeholder-shown):hidden mt-1 text-xs text-[#617f89] dark:text-gray-500">我們將發送驗證信至此信箱。</p>
                 </div>
@@ -80,7 +149,17 @@ export default function RegisterPage() {
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <span className="material-symbols-outlined text-[20px]">lock</span>
                   </span>
-                  <input className="form-input peer block w-full pl-10 pr-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" id="password" minLength={8} name="password" placeholder="設定密碼 (至少8個字元)" required type="password" />
+                  <input 
+                    className="form-input peer block w-full pl-10 pr-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" 
+                    id="password" 
+                    minLength={8} 
+                    name="password" 
+                    placeholder="設定密碼 (至少8個字元)" 
+                    required 
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
                   <button className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" type="button">
                     <span className="material-symbols-outlined text-[20px]">visibility_off</span>
                   </button>
@@ -102,7 +181,16 @@ export default function RegisterPage() {
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <span className="material-symbols-outlined text-[20px]">lock_reset</span>
                   </span>
-                  <input className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 focus:invalid:border-pink-500" id="confirm-password" name="confirm-password" placeholder="再次輸入密碼" required type="password" />
+                  <input 
+                    className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 focus:invalid:border-pink-500" 
+                    id="confirm-password" 
+                    name="confirm-password" 
+                    placeholder="再次輸入密碼" 
+                    required 
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                  />
                   <p className="hidden peer-invalid:not(:placeholder-shown):block mt-1 text-xs text-pink-500">請再次確認您的密碼</p>
                 </div>
               </div>
@@ -113,7 +201,16 @@ export default function RegisterPage() {
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                     <span className="material-symbols-outlined text-[20px]">school</span>
                   </span>
-                  <input className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" id="teacher-code" name="teacher-code" placeholder="請輸入教師代碼" required type="text" />
+                  <input 
+                    className="form-input peer block w-full pl-10 rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1e2d36] text-gray-900 dark:text-white placeholder-gray-400 focus:border-primary focus:ring-primary sm:text-sm h-12 focus:shadow-[0_0_0_4px_rgba(19,182,236,0.1)] transition-all duration-200 ease-in-out invalid:not(:placeholder-shown):border-pink-500 invalid:not(:placeholder-shown):text-pink-600 focus:invalid:border-pink-500 focus:invalid:ring-pink-500" 
+                    id="teacher-code" 
+                    name="teacher-code" 
+                    placeholder="請輸入教師代碼" 
+                    required 
+                    type="text"
+                    value={teacherCode}
+                    onChange={e => setTeacherCode(e.target.value)}
+                  />
                   <p className="hidden peer-invalid:not(:placeholder-shown):block mt-1 text-xs text-pink-500">教師代碼為必填欄位</p>
                   <p className="peer-invalid:not(:placeholder-shown):hidden mt-1 text-xs text-[#617f89] dark:text-gray-500">請輸入課程導師提供的專屬代碼以完成註冊驗證。</p>
                 </div>
@@ -130,8 +227,12 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <button className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
-                立即註冊
+              <button 
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? '註冊中...' : '立即註冊'}
               </button>
 
               <div className="relative my-6">
