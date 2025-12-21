@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-export default function TeacherStudentManagementPage() {
+export default function StudentManagementPage() {
   return (
     <div className="flex-1 flex flex-col h-full bg-background-light dark:bg-background-dark overflow-hidden">
       {/* Header */}
@@ -25,9 +25,6 @@ export default function TeacherStudentManagementPage() {
             <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-sub group-focus-within:text-primary text-[18px] transition-colors">search</span>
           </div>
           <div className="h-8 w-px bg-border-light dark:bg-border-dark mx-1"></div>
-          {/* Teachers might not have permission to add students directly, but keeping consistent UI for now as per plan. 
-              Can be removed or hidden if requirements clarify 'ReadOnly' for teachers.
-          */}
           <button className="flex items-center justify-center gap-2 rounded-lg h-10 px-5 bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/30 text-sm font-bold transition-all active:scale-95">
             <span className="material-symbols-outlined text-[20px]">person_add</span>
             <span>新增學生</span>
@@ -43,7 +40,7 @@ export default function TeacherStudentManagementPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface-light dark:bg-surface-dark p-5 rounded-2xl border border-border-light dark:border-border-dark shadow-sm flex items-center justify-between relative overflow-hidden group">
               <div className="flex flex-col z-10">
-                <p className="text-text-sub text-xs font-semibold uppercase tracking-wide">我的學生</p>
+                <p className="text-text-sub text-xs font-semibold uppercase tracking-wide">總學生數</p>
                 <p className="text-2xl font-bold text-slate-800 dark:text-white mt-1">42 <span className="text-sm font-normal text-text-sub">人</span></p>
               </div>
               <div className="size-12 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center z-10 group-hover:scale-110 transition-transform">

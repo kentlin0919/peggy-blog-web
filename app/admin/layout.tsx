@@ -17,7 +17,7 @@ export default function AdminLayout({
         <header className="lg:hidden fixed w-full z-30 top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center">
           <h1 className="text-lg font-bold">Admin</h1>
           <button className="text-gray-500 dark:text-gray-400">
-            <span className="material-icons-outlined">menu</span>
+            <span className="material-symbols-outlined">menu</span>
           </button>
         </header>
 

@@ -3,7 +3,7 @@
 @theme {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   --color-primary: #13b6ec;
   --color-primary-dark: #0e9bc9;
   --color-background-light: #f8fafd;
@@ -14,6 +14,14 @@
 
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-glow: 0 0 15px rgba(19, 182, 236, 0.3);
+
+  /* Custom Colors from Design */
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1e293b;
+  --color-text-main: #334155;
+  --color-text-sub: #64748b;
+  --color-border-light: #e2e8f0;
+  --color-border-dark: #334155;
 }
 
 :root {

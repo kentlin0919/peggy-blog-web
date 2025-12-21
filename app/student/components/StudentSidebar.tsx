@@ -8,11 +8,11 @@ export default function StudentSidebar() {
         <div className="flex items-center gap-3 mb-10 text-teal-600 dark:text-teal-400">
           <div className="p-2 bg-teal-500/10 rounded-xl">
             <span className="material-symbols-outlined text-[28px]">
-              dentistry
+              school
             </span>
           </div>
           <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-white">
-            牙雕家教
+            家教預約平台
           </span>
         </div>
 

@@ -24,8 +24,8 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "雕刻時光 Denture Art - 首頁",
-  description: "結合美學與精準的牙體形態雕刻教學",
+  title: "家教預約平台",
+  description: "專業家教預約與管理系統",
 };
 
 export default function RootLayout({

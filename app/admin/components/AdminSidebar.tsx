@@ -1,6 +1,17 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminSidebar() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+  };
+
   return (
     <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col fixed h-full z-20 hidden lg:flex transition-colors duration-300">
       <div className="p-6 flex items-center space-x-3 border-b border-gray-100 dark:border-gray-700">
@@ -17,7 +28,7 @@ export default function AdminSidebar() {
             Super Admin
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            牙牙學語 系統管理
+            家教平台 系統管理
           </p>
         </div>
       </div>
@@ -26,14 +37,14 @@ export default function AdminSidebar() {
           href="/admin/dashboard"
           className="flex items-center space-x-3 px-3 py-2.5 bg-sky-50 dark:bg-sky-500/20 text-sky-500 rounded-lg group"
         >
-          <span className="material-icons-outlined text-xl">dashboard</span>
+          <span className="material-symbols-outlined text-xl">dashboard</span>
           <span className="font-medium text-sm">儀表板</span>
         </Link>
         <Link
           href="/admin/teachers"
           className="flex items-center space-x-3 px-3 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg group transition-colors"
         >
-          <span className="material-icons-outlined text-xl group-hover:text-sky-500 transition-colors">
+          <span className="material-symbols-outlined text-xl group-hover:text-sky-500 transition-colors">
             school
           </span>
           <span className="font-medium text-sm">教師管理</span>
@@ -42,16 +53,16 @@ export default function AdminSidebar() {
           href="#"
           className="flex items-center space-x-3 px-3 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg group transition-colors"
         >
-          <span className="material-icons-outlined text-xl group-hover:text-sky-500 transition-colors">
+          <span className="material-symbols-outlined text-xl group-hover:text-sky-500 transition-colors">
             menu_book
           </span>
           <span className="font-medium text-sm">課程管理</span>
         </Link>
         <Link
-          href="#"
+          href="/admin/students"
           className="flex items-center space-x-3 px-3 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg group transition-colors"
         >
-          <span className="material-icons-outlined text-xl group-hover:text-sky-500 transition-colors">
+          <span className="material-symbols-outlined text-xl group-hover:text-sky-500 transition-colors">
             people
           </span>
           <span className="font-medium text-sm">學生管理</span>
@@ -60,7 +71,7 @@ export default function AdminSidebar() {
           href="#"
           className="flex items-center space-x-3 px-3 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg group transition-colors"
         >
-          <span className="material-icons-outlined text-xl group-hover:text-sky-500 transition-colors">
+          <span className="material-symbols-outlined text-xl group-hover:text-sky-500 transition-colors">
             payments
           </span>
           <span className="font-medium text-sm">財務報表</span>
@@ -69,20 +80,20 @@ export default function AdminSidebar() {
           href="#"
           className="flex items-center space-x-3 px-3 py-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg group transition-colors"
         >
-          <span className="material-icons-outlined text-xl group-hover:text-sky-500 transition-colors">
+          <span className="material-symbols-outlined text-xl group-hover:text-sky-500 transition-colors">
             settings
           </span>
           <span className="font-medium text-sm">系統設定</span>
         </Link>
       </nav>
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <Link
-          href="#"
-          className="flex items-center space-x-3 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-3 py-2 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors w-full text-left"
         >
-          <span className="material-icons-outlined text-xl">logout</span>
+          <span className="material-symbols-outlined text-xl">logout</span>
           <span className="font-medium text-sm">登出系統</span>
-        </Link>
+        </button>
       </div>
     </aside>
   );

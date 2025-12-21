@@ -10,7 +10,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4 transition-transform hover:-translate-y-1 duration-300">
           <div className="p-3 bg-sky-50 dark:bg-sky-900/30 rounded-lg text-sky-500">
-            <span className="material-icons-outlined text-2xl">supervisor_account</span>
+            <span className="material-symbols-outlined text-2xl">supervisor_account</span>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
@@ -21,7 +21,7 @@ export default function AdminDashboard() {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4 transition-transform hover:-translate-y-1 duration-300">
           <div className="p-3 bg-sky-50 dark:bg-sky-900/30 rounded-lg text-sky-500">
-            <span className="material-icons-outlined text-2xl">person_outline</span>
+            <span className="material-symbols-outlined text-2xl">person</span>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
@@ -32,7 +32,7 @@ export default function AdminDashboard() {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4 transition-transform hover:-translate-y-1 duration-300">
           <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-500">
-            <span className="material-icons-outlined text-2xl">event_available</span>
+            <span className="material-symbols-outlined text-2xl">event_available</span>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center space-x-4 transition-transform hover:-translate-y-1 duration-300">
           <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-500">
-            <span className="material-icons-outlined text-2xl">attach_money</span>
+            <span className="material-symbols-outlined text-2xl">attach_money</span>
           </div>
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
         <div className="col-span-12 lg:col-span-3">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-              <span className="material-icons-outlined text-sky-500">bolt</span>
+              <span className="material-symbols-outlined text-sky-500">bolt</span>
               快速連結
             </h3>
             <div className="flex flex-col gap-4">
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <span className="material-icons-outlined">school</span>
+                    <span className="material-symbols-outlined">school</span>
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-800 dark:text-white">
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
                       審核與管理師資
                     </p>
                   </div>
-                  <span className="material-icons-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
+                  <span className="material-symbols-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
                     chevron_right
                   </span>
                 </div>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <span className="material-icons-outlined">people</span>
+                    <span className="material-symbols-outlined">people</span>
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-800 dark:text-white">
@@ -271,7 +271,7 @@ export default function AdminDashboard() {
                       查看學生學習進度
                     </p>
                   </div>
-                  <span className="material-icons-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
+                  <span className="material-symbols-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
                     chevron_right
                   </span>
                 </div>
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <span className="material-icons-outlined">
+                    <span className="material-symbols-outlined">
                       attach_money
                     </span>
                   </div>
@@ -294,7 +294,7 @@ export default function AdminDashboard() {
                       平台費用與報表
                     </p>
                   </div>
-                  <span className="material-icons-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
+                  <span className="material-symbols-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
                     chevron_right
                   </span>
                 </div>
@@ -305,7 +305,7 @@ export default function AdminDashboard() {
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <span className="material-icons-outlined">announcement</span>
+                    <span className="material-symbols-outlined">announcement</span>
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-800 dark:text-white">
@@ -315,7 +315,7 @@ export default function AdminDashboard() {
                       全站消息推播
                     </p>
                   </div>
-                  <span className="material-icons-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
+                  <span className="material-symbols-outlined text-gray-400 group-hover:text-sky-500 ml-auto transition-colors">
                     chevron_right
                   </span>
                 </div>

@@ -116,7 +116,7 @@ function LoginContent() {
               <path clipRule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5563 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fillRule="evenodd"></path>
             </svg>
           </Link>
-          <h2 className="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">牙體雕刻家教中心</h2>
+          <h2 className="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">家教預約平台</h2>
         </div>
         <div className="flex flex-1 justify-end gap-8">
           <div className="hidden lg:flex items-center gap-9">
@@ -140,11 +140,11 @@ function LoginContent() {
             <div className="relative z-10 flex flex-col h-full">
               <div className="mb-12">
                 <div className="size-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20 shadow-lg">
-                  <span className="material-symbols-outlined text-3xl">brush</span>
+                  <span className="material-symbols-outlined text-3xl">school</span>
                 </div>
-                <h2 className="text-4xl font-bold mb-4 leading-tight tracking-tight">精雕細琢<br />成就非凡職人</h2>
-                <p className="text-lg text-white/90 font-light leading-relaxed max-w-sm">
-                  專為女性設計的牙體技術雕刻課程，在舒適的環境中，開始您的專業學習之旅。
+                <h2 className="text-4xl font-bold mb-4 leading-tight tracking-tight">精選課程<br />成就非凡實力</h2>
+                <p className="text-lg text-white/90 leading-relaxed">
+                  專為學員量身打造的專業家教課程，在舒適的環境中，開始您的學習之旅。
                 </p>
               </div>
               <div className="mt-auto space-y-6">
@@ -156,7 +156,7 @@ function LoginContent() {
                     <span className="material-symbols-outlined text-[20px] fill-current">star</span>
                     <span className="material-symbols-outlined text-[20px] fill-current">star</span>
                   </div>
-                  <p className="text-sm italic text-white/95">{`"老師非常有耐心，小班制的教學讓我能真正掌握到雕刻的訣竅，推薦給所有想考國考的學妹！"`}</p>
+                  <p className="text-sm italic text-white/95">{`"老師非常有耐心，一對一的教學讓我能真正掌握到學習的訣竅，推薦給所有想精進的同學！"`}</p>
                   <div className="mt-3 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">L</div>
                     <span className="text-xs font-medium opacity-80">林曉梅 - 112年國考及格</span>
@@ -175,7 +175,7 @@ function LoginContent() {
                   學員登入
                 </label>
                 <label className="cursor-pointer pb-3 text-lg font-bold text-slate-400 dark:text-gray-500 transition-all hover:text-slate-600 dark:hover:text-gray-300 peer-checked/register:text-primary dark:peer-checked/register:text-primary peer-checked/register:border-b-2 peer-checked/register:border-primary peer-checked/register:-mb-[2px]" htmlFor="tab-register">
-                  註冊帳號
+                  學員註冊
                 </label>
               </div>
               <div className="hidden peer-checked/login:block animate-[fadeIn_0.3s_ease-out]">
@@ -237,17 +237,25 @@ function LoginContent() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
-                      <img alt="Google" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuActoeFgeACj5j868KbNSODvUCcGssflFs-JuMbBA6Z9_5GmYHHSmhbVJvH62yPMnq0maPe7jF-MqhlLYWHLad5nueGKj7b5RrnLEkF93gY6ug2cg6JfbY-jv470WnHyi-S0q8bTwoyF6EkR9bcT5XOzHJOju8jmaCXr_1p0012XkfHDpyAvT0bYqVxIf6eIAU8wX1ljJ8WeMW7Ok5FT81l1Z001OJE6tw8iYd8L-s6Bw3NG05LqqkzFDpAAAVGdPBiqIuxplawacY" />
+                      <div className="w-5 h-5 relative">
+                        <Image alt="Google" src="https://lh3.googleusercontent.com/aida-public/AB6AXuActoeFgeACj5j868KbNSODvUCcGssflFs-JuMbBA6Z9_5GmYHHSmhbVJvH62yPMnq0maPe7jF-MqhlLYWHLad5nueGKj7b5RrnLEkF93gY6ug2cg6JfbY-jv470WnHyi-S0q8bTwoyF6EkR9bcT5XOzHJOju8jmaCXr_1p0012XkfHDpyAvT0bYqVxIf6eIAU8wX1ljJ8WeMW7Ok5FT81l1Z001OJE6tw8iYd8L-s6Bw3NG05LqqkzFDpAAAVGdPBiqIuxplawacY" fill className="object-contain" />
+                      </div>
                       <span className="hidden sm:inline">Google</span>
                     </button>
                     <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
-                      <img alt="Facebook" className="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_03tU9o1bP6_58eLpazAdhvnX6O--ihoUf_LKHLZTp2XzLIWVDIGdofwUaaksnVd7ArVaCNn2yxiPz0wF96A-82vNP498VrC-dl75tomPDJT1R3OxU0IbLZMqgA33j-vBTZFNweQZPhI_rhqeU8GQg3QRAFeNqD6gcYewyAzHEpXqVdKcTspsztXHS8vIklalZCmYnZQcWPBW3Ue6fcTlqBjtv8qISsb8O13_oGDazHJdBBbl45Kt-ryyiEGYAu5_8zYwZtKq0YU" />
+                       <div className="w-5 h-5 relative">
+                        <Image alt="Facebook" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_03tU9o1bP6_58eLpazAdhvnX6O--ihoUf_LKHLZTp2XzLIWVDIGdofwUaaksnVd7ArVaCNn2yxiPz0wF96A-82vNP498VrC-dl75tomPDJT1R3OxU0IbLZMqgA33j-vBTZFNweQZPhI_rhqeU8GQg3QRAFeNqD6gcYewyAzHEpXqVdKcTspsztXHS8vIklalZCmYnZQcWPBW3Ue6fcTlqBjtv8qISsb8O13_oGDazHJdBBbl45Kt-ryyiEGYAu5_8zYwZtKq0YU" fill className="object-contain" />
+                      </div>
                       <span className="hidden sm:inline">Facebook</span>
                     </button>
                   </div>
                 </form>
               </div>
               <div className="hidden peer-checked/register:block animate-[fadeIn_0.3s_ease-out]">
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 rounded-lg text-xs leading-relaxed flex gap-2">
+                  <span className="material-symbols-outlined text-[18px] shrink-0">info</span>
+                  <p>此註冊通道僅供<strong>課程學員</strong>使用。教師帳號請聯繫管理員建立。</p>
+                </div>
                 <form className="space-y-4" onSubmit={handleRegister}>
                   {regError && (
                     <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
@@ -359,7 +367,7 @@ function LoginContent() {
             <div className="size-6 text-primary">
               <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path></svg>
             </div>
-            <p className="text-[#617f89] dark:text-gray-500 text-sm">© 2023 牙體雕刻家教中心. All rights reserved.</p>
+            <p className="text-[#617f89] dark:text-gray-500 text-sm">© 2025 家教預約平台. All rights reserved.</p>
           </div>
           <div className="flex gap-6">
             <Link className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium" href="/legal/privacy">隱私權政策</Link>
