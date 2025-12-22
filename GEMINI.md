@@ -128,3 +128,55 @@ export async function generateStaticParams() {
 - **課程管理:** 編輯課程內容與教案 (支援富文本)。
 - **預約系統:** 管理學生預約請求。
 - **CRM:** 追蹤學生學習進度與作品集。
+
+## ⚠️ 靜態網站開發規則 (Static Export Rules)
+
+本專案使用 `output: export` 靜態輸出模式，**必須遵守以下開發規則**：
+
+### 禁止使用的功能
+
+| 功能                                    | 原因                 | 替代方案                                       |
+| --------------------------------------- | -------------------- | ---------------------------------------------- |
+| `middleware.ts`                         | Static Export 不支援 | 使用 `AuthGuard.tsx` 客戶端守衛                |
+| `@supabase/ssr` 的 `createServerClient` | 需要 Server Runtime  | 使用 `@supabase/supabase-js` 的 `createClient` |
+| `next/headers` 的 `cookies()`           | 需要 Server Runtime  | 使用 `document.cookie` 或 Supabase 自動處理    |
+| `getServerSideProps`                    | 需要 Server Runtime  | 使用 `useEffect` + Client Fetch                |
+| API Routes (`app/api/*`)                | 需要 Server Runtime  | 直接呼叫 Supabase / Edge Functions             |
+
+### Supabase 客戶端使用規則
+
+```typescript
+// ✅ 正確：使用 @supabase/supabase-js
+import { createClient } from "@supabase/supabase-js";
+
+export function createClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+// ❌ 錯誤：不要使用 @supabase/ssr 的 Server 版本
+import { createServerClient } from "@supabase/ssr"; // 禁止
+```
+
+### Cookie 處理規則
+
+- **不能在 Server 端寫入 Cookie** (沒有 Server)
+- Supabase Auth 會**自動**在 Client 端管理 Session Cookie
+- 如需自訂 Cookie，使用 `document.cookie` 或 `js-cookie` 套件
+
+### TypeScript 設定
+
+`tsconfig.json` 必須排除 Supabase Edge Functions 目錄：
+
+```json
+{
+  "exclude": ["node_modules", "supabase/functions"]
+}
+```
+
+### 檔案命名規則
+
+- **禁止** 在專案根目錄建立 `middleware.ts` 或 `proxy.ts`
+- **禁止** 建立 `app/api/` 目錄下的 API Routes
