@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +14,39 @@ export default function TeacherSidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [teacherCode, setTeacherCode] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('https://lh3.googleusercontent.com/aida-public/AB6AXuDO6reZcrIx4TpNaoa2cHckBMT5jGOVcSOgCiWFeFHvwR5BhOlm6EzZoO1nDA5jhhdVnLiS3xPcbfPeCVuaPW7x9yyQ1OpilXHhQqZf7s1ilC_fOFoonIf98HRVehAYuVriM8l3I0MrYHIn39RVWEj_4jU-wlh_BemOK4VeRUNedhA-sln2p5816fNCRlBCziM3mk1IHmY1EIx1yw45MJkIcGFi9fz7JcPrVe1C0mU8MYnl7CYlnU1BMQEyHUmuypSHuwydpWLgPOU');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('user_info')
+        .select('name, avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      const { data: teacherData } = await supabase
+        .from('teacher_info')
+        .select('title, teacher_code')
+        .eq('id', user.id)
+        .single();
+
+      if (userData) {
+        setName(userData.name);
+        if ((userData as any).avatar_url) setAvatarUrl((userData as any).avatar_url);
+      }
+      if (teacherData) {
+        if ((teacherData as any).title) setTitle((teacherData as any).title);
+        if (teacherData.teacher_code) setTeacherCode(teacherData.teacher_code);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -68,13 +102,18 @@ export default function TeacherSidebar({
               </div>
               <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-border-light dark:border-border-dark">
                 <div 
-                  className="bg-center bg-no-repeat bg-cover rounded-full size-12 shadow-sm ring-2 ring-white dark:ring-slate-700" 
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDO6reZcrIx4TpNaoa2cHckBMT5jGOVcSOgCiWFeFHvwR5BhOlm6EzZoO1nDA5jhhdVnLiS3xPcbfPeCVuaPW7x9yyQ1OpilXHhQqZf7s1ilC_fOFoonIf98HRVehAYuVriM8l3I0MrYHIn39RVWEj_4jU-wlh_BemOK4VeRUNedhA-sln2p5816fNCRlBCziM3mk1IHmY1EIx1yw45MJkIcGFi9fz7JcPrVe1C0mU8MYnl7CYlnU1BMQEyHUmuypSHuwydpWLgPOU")' }}
+                  className="bg-center bg-no-repeat bg-cover rounded-full size-12 shadow-sm ring-2 ring-white dark:ring-slate-700 h-12 w-12 shrink-0" 
+                  style={{ backgroundImage: `url("${avatarUrl}")` }}
                 >
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <h1 className="text-slate-900 dark:text-white text-base font-bold truncate">林曉梅</h1>
-                  <p className="text-text-sub dark:text-gray-400 text-xs truncate">專業家教導師</p>
+                  <h1 className="text-slate-900 dark:text-white text-base font-bold truncate">{name || '載入中...'}</h1>
+                  <p className="text-text-sub dark:text-gray-400 text-xs truncate">{title || '專業家教導師'}</p>
+                  {teacherCode && (
+                    <p className="text-primary text-[10px] font-mono mt-0.5 truncate bg-primary/10 px-1.5 py-0.5 rounded w-fit">
+                      #{teacherCode}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -116,10 +155,14 @@ export default function TeacherSidebar({
           </div>
 
           <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border-light dark:border-border-dark">
-            <button className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-              <span className="material-symbols-outlined">settings</span>
+            <Link 
+              href="/teacher/settings"
+              onClick={() => onClose()}
+              className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg transition-all ${pathname === '/teacher/settings' ? 'bg-primary/10 text-primary-dark dark:text-primary border-l-4 border-primary' : 'text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+            >
+              <span className={`material-symbols-outlined ${pathname === '/teacher/settings' ? 'filled' : ''}`}>settings</span>
               <span className="text-sm font-medium">系統設定</span>
-            </button>
+            </Link>
             <button 
                 onClick={handleLogout}
                 className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

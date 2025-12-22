@@ -16,6 +16,8 @@ export default function AppSidebar({
   const router = useRouter();
   const [userRole, setUserRole] = useState<'student' | 'teacher' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [studentInfo, setStudentInfo] = useState<any>(null);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -41,6 +43,27 @@ export default function AppSidebar({
         } else {
             // Default or guest
              setUserRole(null);
+        }
+
+        // Fetch User Info
+        const { data: uInfo } = await supabase
+            .from('user_info')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+        
+        if (uInfo) {
+            setUserInfo(uInfo);
+        }
+
+        // Fetch Student Info if role is student or implied
+        if (pathname.startsWith('/student')) {
+             const { data: sInfo } = await supabase
+                .from('student_info')
+                .select('student_code')
+                .eq('id', user.id)
+                .single();
+             if (sInfo) setStudentInfo(sInfo);
         }
       }
       setLoading(false);
@@ -159,10 +182,14 @@ export default function AppSidebar({
                    <div className="bg-slate-200 dark:bg-slate-700 rounded-full h-10 w-10 flex items-center justify-center text-slate-500">
                         <span className="material-symbols-outlined">person</span>
                    </div>
-                 <div className="flex flex-col overflow-hidden">
-                    <span className="text-sm font-bold text-slate-800 dark:text-white truncate">使用者</span>
-                    <span className="text-xs text-slate-500 truncate capitalize">{userRole}</span>
-                 </div>
+                  <div className="flex flex-col overflow-hidden">
+                     <span className="text-sm font-bold text-slate-800 dark:text-white truncate">
+                        {userInfo?.name || '使用者'}
+                     </span>
+                     <span className="text-xs text-slate-500 truncate capitalize">
+                        {userRole === 'student' && studentInfo?.student_code ? studentInfo.student_code : userRole}
+                     </span>
+                  </div>
                  <span className="material-symbols-outlined text-slate-400 ml-auto group-hover:text-red-500 transition-colors">
                    logout
                  </span>

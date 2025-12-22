@@ -28,8 +28,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
           router.push(loginUrl);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error checking auth:', error);
+        
+        // Handle invalid refresh token specifically to prevent infinite loops
+        // "AuthApiError: Invalid Refresh Token: Refresh Token Not Found"
+        if (error?.message?.includes('Invalid Refresh Token') || 
+            error?.message?.includes('Refresh Token Not Found')) {
+          console.warn('Invalid refresh token detected. Force signing out...');
+          await supabase.auth.signOut();
+        }
+        
         setIsAuthenticated(false);
         router.push('/auth/login');
       } finally {

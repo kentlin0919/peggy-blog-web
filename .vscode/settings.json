@@ -1,3 +1,16 @@
 {
-  "cSpell.words": ["Supabase"]
+  "cSpell.words": ["fkey", "Supabase"],
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 54322,
+      "driver": "PostgreSQL",
+      "name": "supabase",
+      "group": "supabase",
+      "username": "postgres",
+      "database": "postgres"
+    }
+  ]
 }

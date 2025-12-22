@@ -49,6 +49,159 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          id: string
+          student_id: string
+          course_id: string
+          teacher_id: string
+          booking_date: string
+          start_time: string
+          end_time: string
+          status: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          course_id: string
+          teacher_id: string
+          booking_date: string
+          start_time: string
+          end_time: string
+          status?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          course_id?: string
+          teacher_id?: string
+          booking_date?: string
+          start_time?: string
+          end_time?: string
+          status?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          id: string
+          teacher_id: string
+          title: string
+          description: string | null
+          course_type: string
+          duration_minutes: number
+          price: number | null
+          location: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          teacher_id: string
+          title: string
+          description?: string | null
+          course_type: string
+          duration_minutes: number
+          price?: number | null
+          location?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          teacher_id?: string
+          title?: string
+          description?: string | null
+          course_type?: string
+          duration_minutes?: number
+          price?: number | null
+          location?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_info"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_info: {
+        Row: {
+          created_at: string
+          id: string
+          student_code: string | null
+          teacher_code: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          student_code?: string | null
+          teacher_code: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          student_code?: string | null
+          teacher_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_info_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_student_teacher_code"
+            columns: ["teacher_code"]
+            isOneToOne: false
+            referencedRelation: "teacher_info"
+            referencedColumns: ["teacher_code"]
+          },
+        ]
+      }
       teacher_info: {
         Row: {
           base_price: number | null
@@ -60,6 +213,12 @@ export type Database = {
           specialties: string[] | null
           teacher_code: string
           updated_at: string
+          title: string | null
+          booking_settings: Json | null
+          notification_settings: Json | null
+          google_calendar_enabled: boolean | null
+          line_notify_enabled: boolean | null
+          line_notify_token: string | null
         }
         Insert: {
           base_price?: number | null
@@ -71,6 +230,12 @@ export type Database = {
           specialties?: string[] | null
           teacher_code: string
           updated_at?: string
+          title?: string | null
+          booking_settings?: Json | null
+          notification_settings?: Json | null
+          google_calendar_enabled?: boolean | null
+          line_notify_enabled?: boolean | null
+          line_notify_token?: string | null
         }
         Update: {
           base_price?: number | null
@@ -82,6 +247,12 @@ export type Database = {
           specialties?: string[] | null
           teacher_code?: string
           updated_at?: string
+          title?: string | null
+          booking_settings?: Json | null
+          notification_settings?: Json | null
+          google_calendar_enabled?: boolean | null
+          line_notify_enabled?: boolean | null
+          line_notify_token?: string | null
         }
         Relationships: [
           {
@@ -104,6 +275,8 @@ export type Database = {
           is_active: boolean
           name: string
           updated_at: string
+          phone: string | null
+          avatar_url: string | null
         }
         Insert: {
           created_at?: string
@@ -115,6 +288,8 @@ export type Database = {
           is_active?: boolean
           name: string
           updated_at?: string
+          phone?: string | null
+          avatar_url?: string | null
         }
         Update: {
           created_at?: string
@@ -126,6 +301,8 @@ export type Database = {
           is_active?: boolean
           name?: string
           updated_at?: string
+          phone?: string | null
+          avatar_url?: string | null
         }
         Relationships: []
       }

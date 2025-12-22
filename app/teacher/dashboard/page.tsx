@@ -1,13 +1,28 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+
 export default function TeacherDashboardPage() {
+  const [name, setName] = useState('');
+
+  useEffect(() => {
+    const fetchName = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('user_info').select('name').eq('id', user.id).single();
+      if (data) setName(data.name);
+    };
+    fetchName();
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-background-light dark:bg-background-dark">
       {/* Header */}
       <header className="w-full bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-md border-b border-border-light dark:border-border-dark px-8 py-4 flex justify-between items-center sticky top-0 z-10 transition-all">
         <div className="flex flex-col">
           <h2 className="text-slate-800 dark:text-white text-xl font-bold tracking-tight flex items-center gap-2">
-            早安，林老師 
+            早安，{name || '老師'}
             <span className="text-xl">👋</span>
           </h2>
           <p className="text-text-sub dark:text-gray-400 text-sm mt-0.5">
