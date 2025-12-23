@@ -325,7 +325,7 @@ export default function AdminDashboard() {
         </div>
       </div>
       <div className="mt-12 text-center text-xs text-gray-500 dark:text-gray-400">
-        © 2023 牙牙學語 Denture Carving Tutoring System. All rights reserved.
+        © 2025 TimeCarve 刻時. All rights reserved.
       </div>
     </div>
   );

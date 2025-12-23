@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "隱私權政策 | Peggy Blog Web",
-  description: "Peggy Blog Web 遵守《個人資料保護法》，致力於保護您的個人資料隱私。",
+  title: "隱私權政策 | TimeCarve 刻時",
+  description: "TimeCarve 刻時 遵守《個人資料保護法》，致力於保護您的個人資料隱私。",
 };
 
 export default function PrivacyPage() {
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <div className="space-y-8 text-gray-600 leading-relaxed text-justify">
             <section>
               <p className="mb-4">
-                Peggy Blog Web（以下簡稱「本平台」）非常重視您的隱私權。為了讓您能夠安心使用本平台的各項服務與資訊，特此向您說明本平台的隱私權保護政策，以保障您的權益。本政策遵循中華民國《個人資料保護法》（以下簡稱「個資法」）及相關法令規範制定。
+                TimeCarve 刻時（以下簡稱「本平台」）非常重視您的隱私權。為了讓您能夠安心使用本平台的各項服務與資訊，特此向您說明本平台的隱私權保護政策，以保障您的權益。本政策遵循中華民國《個人資料保護法》（以下簡稱「個資法」）及相關法令規範制定。
               </p>
             </section>
 
@@ -171,8 +171,8 @@ export default function PrivacyPage() {
                 若您對本隱私權政策有任何疑問，或欲行使您的個人資料權利，歡迎透過以下方式與我們聯繫：
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium text-gray-900">Peggy Blog Web 客服中心</p>
-                <p className="text-gray-600 mt-1">Email: support@peggyblog.com</p>
+                <p className="font-medium text-gray-900">TimeCarve 刻時 客服中心</p>
+                <p className="text-gray-600 mt-1">Email: support@timecarve.com</p>
               </div>
             </section>
           </div>

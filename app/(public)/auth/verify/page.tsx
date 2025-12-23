@@ -151,7 +151,7 @@ function VerifyContent() {
             <span className="material-symbols-outlined">arrow_back</span>
           </Link>
           <div className="flex flex-col">
-            <h2 className="text-lg font-bold leading-tight tracking-tight text-[#111618] dark:text-white">家教預約平台</h2>
+            <h2 className="text-lg font-bold leading-tight tracking-tight text-[#111618] dark:text-white">TimeCarve 刻時</h2>
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400">專業家教預約系統</span>
           </div>
         </div>

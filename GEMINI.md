@@ -1,8 +1,8 @@
-# Peggy Blog Web - 專案指南
+# TimeCarve 刻時 - 專案指南
 
 ## 專案概述
 
-這是一個基於 **Next.js (App Router)** 構建的現代化網頁應用程式專案，針對 **Static Export (GitHub Pages)** 進行了優化。專案整合了學生端前台與教師管理端後台，提供完整的課程預約、作品集展示及學員管理功能。
+這是一個基於 **Next.js (App Router)** 構建的現代化家教預約平台專案，針對 **Static Export (GitHub Pages)** 進行了優化。TimeCarve 提供學生與教師高效的時間管理及課程預約工具，幫助他們規劃課表、管理預約、並追蹤個人化的學習進度。
 
 ## 技術堆疊
 

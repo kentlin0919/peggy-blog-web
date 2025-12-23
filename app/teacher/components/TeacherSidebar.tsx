@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
@@ -93,8 +94,10 @@ export default function TeacherSidebar({
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-2 px-1 justify-between">
                 <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-3xl">school</span>
-                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">家教預約</h2>
+                    <div className="relative w-8 h-8">
+                       <Image src="/logo.svg" alt="TimeCarve Logo" fill className="object-contain" />
+                    </div>
+                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">TimeCarve 刻時</h2>
                 </div>
                 <button onClick={onClose} className="lg:hidden p-1 text-text-sub hover:text-text-main">
                     <span className="material-symbols-outlined">close</span>

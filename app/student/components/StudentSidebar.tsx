@@ -19,7 +19,7 @@ export default function StudentSidebar() {
             </span>
           </div>
           <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-white">
-            家教預約平台
+            TimeCarve 刻時
           </span>
         </div>
 

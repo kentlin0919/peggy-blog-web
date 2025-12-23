@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -126,13 +127,11 @@ export default function AppSidebar({
         <div className="flex flex-col h-full p-6">
            {/* Brand */}
           <div className="flex items-center gap-3 mb-10 text-teal-600 dark:text-teal-400">
-            <div className="p-2 bg-teal-500/10 rounded-xl">
-              <span className="material-symbols-outlined text-[28px]">
-                school
-              </span>
+            <div className="relative w-8 h-8">
+               <Image src="/logo.svg" alt="TimeCarve Logo" fill className="object-contain" />
             </div>
             <span className="font-bold text-xl tracking-tight text-slate-800 dark:text-white">
-              家教預約平台
+              TimeCarve 刻時
             </span>
             <button onClick={onClose} className="md:hidden ml-auto p-1 text-slate-400 hover:text-slate-600">
                 <span className="material-symbols-outlined">close</span>

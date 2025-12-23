@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Lexend, Noto_Sans_TC } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +12,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const lexend = Lexend({
-  variable: "--font-lexend",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const notoSansTC = Noto_Sans_TC({
@@ -24,8 +25,11 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "家教預約平台",
-  description: "專業家教預約與管理系統",
+  title: "TimeCarve 刻時 | 專業家教預約平台",
+  description: "TimeCarve 刻時 - 為學生與家教打造的專屬時間管理與課程預約系統",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({
@@ -39,7 +43,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${lexend.variable} ${notoSansTC.variable} antialiased font-display`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${notoSansTC.variable} antialiased font-display`}
       >
         {children}
       </body>

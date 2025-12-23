@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "使用者條款 | Peggy Blog Web",
-  description: "Peggy Blog Web 使用者條款（Terms of Service），規範雙方權利義務。",
+  title: "使用者條款 | TimeCarve 刻時",
+  description: "TimeCarve 刻時 使用者條款（Terms of Service），規範雙方權利義務。",
 };
 
 export default function TermsPage() {
@@ -36,7 +36,7 @@ export default function TermsPage() {
           <div className="space-y-8 text-gray-600 leading-relaxed text-justify">
             <section>
               <p className="mb-4">
-                歡迎您使用 Peggy Blog Web（以下簡稱「本平台」）。本平台係由 [您的公司/團隊名稱]（以下簡稱「我們」）所經營。為了保障您的權益，請您在註冊或使用本服務前，詳細閱讀本使用者服務條款（以下簡稱「本條款」）。
+                歡迎您使用 TimeCarve 刻時（以下簡稱「本平台」）。本平台係由 [您的公司/團隊名稱]（以下簡稱「我們」）所經營。為了保障您的權益，請您在註冊或使用本服務前，詳細閱讀本使用者服務條款（以下簡稱「本條款」）。
               </p>
               <p className="font-bold text-gray-800">
                 當您完成註冊或開始使用本服務時，即視為您已閱讀、瞭解並同意接受本條款之所有內容。若您不同意本條款之全部或部分內容，請您立即停止使用本服務。
@@ -156,8 +156,8 @@ export default function TermsPage() {
                 若您對本使用者條款有任何疑問，歡迎透過以下方式與我們聯繫：
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium text-gray-900">Peggy Blog Web 客服中心</p>
-                <p className="text-gray-600 mt-1">Email: support@peggyblog.com</p>
+                <p className="font-medium text-gray-900">TimeCarve 刻時 客服中心</p>
+                <p className="text-gray-600 mt-1">Email: support@timecarve.com</p>
               </div>
             </section>
           </div>

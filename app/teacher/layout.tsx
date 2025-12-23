@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import AuthGuard from '../components/AuthGuard';
 import TeacherSidebar from './components/TeacherSidebar';
 
@@ -23,8 +24,10 @@ export default function TeacherLayout({
             {/* Mobile Header */}
             <header className="lg:hidden w-full bg-surface-light/80 dark:bg-surface-dark/80 backdrop-blur-md border-b border-border-light dark:border-border-dark px-4 py-3 flex justify-between items-center z-10">
                 <div className="flex items-center gap-2">
-                     <span className="material-symbols-outlined text-primary text-2xl">draw_collage</span>
-                     <span className="font-bold text-slate-800 dark:text-white">雕刻時光</span>
+                     <div className="relative w-8 h-8">
+                        <Image src="/logo.svg" alt="TimeCarve Logo" fill className="object-contain" />
+                     </div>
+                     <span className="font-bold text-slate-800 dark:text-white">TimeCarve 刻時</span>
                 </div>
                 <button 
                     onClick={() => setSidebarOpen(true)}

@@ -19,7 +19,7 @@ export default function AdminSidebar() {
           <img
             alt="Super Admin Profile"
             className="w-10 h-10 rounded-full object-cover ring-2 ring-sky-500 ring-offset-2 dark:ring-offset-gray-900"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAt6W3eIXk2fHV7ExtV5kB8M6gkgNH91LHPohYHNEV1GR6Ot_YkeOJzTvmE-1EVYqbI66jY480BTxj0G_uPFRLhIIaT-Ved3efBy1SOMqYXPWFlp3guuL8uwqw6KIwgIx825PFTnA65hOhzb0NlEsA5IrD3evHcAGrODr9IcrhcTOkPzQ_BQjfhC98fgy_rXLJFcrx2hbzXDC0V0zEp-TM1pR9xacPJ2rvzyzLn68TK8-qB_ZiFcmPH_iNeakodt5pVW8tC86Uro24"
+            src="/logo.svg"
           />
           <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
         </div>
@@ -28,7 +28,7 @@ export default function AdminSidebar() {
             Super Admin
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            家教平台 系統管理
+            TimeCarve 刻時
           </p>
         </div>
       </div>

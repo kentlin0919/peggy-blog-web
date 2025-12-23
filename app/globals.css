@@ -9,7 +9,7 @@
   --color-background-light: #f8fafd;
   --color-background-dark: #101d22;
 
-  --font-display: var(--font-lexend), var(--font-noto-sans-tc), sans-serif;
+  --font-display: var(--font-inter), var(--font-noto-sans-tc), sans-serif;
   --font-body: var(--font-noto-sans-tc), sans-serif;
 
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);

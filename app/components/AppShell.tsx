@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import AppSidebar from './AppSidebar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -17,8 +18,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {/* Mobile Header (Hamburger) - Visible only on mobile */}
         <header className="md:hidden sticky top-0 z-20 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-4 flex justify-between items-center">
             <div className="flex items-center gap-2">
-                 <span className="material-symbols-outlined text-teal-600">school</span>
-                 <span className="font-bold text-slate-800 dark:text-white">家教預約平台</span>
+                 <div className="relative w-8 h-8">
+                     <Image src="/logo.svg" alt="TimeCarve Logo" fill className="object-contain" />
+                 </div>
+                 <span className="font-bold text-slate-800 dark:text-white">TimeCarve 刻時</span>
             </div>
             <button 
                 onClick={() => setSidebarOpen(true)}
