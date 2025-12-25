@@ -49,6 +49,179 @@ export type Database = {
         }
         Relationships: []
       }
+      schools: {
+        Row: {
+          id: string
+          code: string | null
+          name: string
+          city: string | null
+          website: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          code?: string | null
+          name: string
+          city?: string | null
+          website?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          code?: string | null
+          name?: string
+          city?: string | null
+          website?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      education_statuses: {
+        Row: {
+          id: number
+          status_key: string
+          label_zh: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          status_key: string
+          label_zh: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          status_key?: string
+          label_zh?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      student_education: {
+        Row: {
+          id: string
+          student_id: string
+          school_id: string
+          status_id: number
+          department: string | null
+          grade: string | null
+          start_year: number | null
+          end_year: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          school_id: string
+          status_id: number
+          department?: string | null
+          grade?: string | null
+          start_year?: number | null
+          end_year?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          school_id?: string
+          status_id?: number
+          department?: string | null
+          grade?: string | null
+          start_year?: number | null
+          end_year?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_education_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "student_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_education_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_education_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "education_statuses"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      teacher_education: {
+        Row: {
+          id: string
+          teacher_id: string
+          school_id: string
+          status_id: number
+          degree: string | null
+          department: string | null
+          start_year: number | null
+          end_year: number | null
+          is_verified: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          teacher_id: string
+          school_id: string
+          status_id: number
+          degree?: string | null
+          department?: string | null
+          start_year?: number | null
+          end_year?: number | null
+          is_verified?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          teacher_id?: string
+          school_id?: string
+          status_id?: number
+          degree?: string | null
+          department?: string | null
+          start_year?: number | null
+          end_year?: number | null
+          is_verified?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_education_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_education_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_education_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "education_statuses"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       bookings: {
         Row: {
           id: string
@@ -329,8 +502,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_teacher_code_exists: {
+        Args: {
+          code: string
+        }
+        Returns: boolean
+      }
       generate_teacher_code: { Args: never; Returns: string }
-      get_identity_id: { Args: never; Returns: number }
+      get_identity_id: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      get_or_create_school: {
+        Args: {
+          p_code: string | null
+          p_name: string
+          p_city?: string | null
+          p_website?: string | null
+        }
+        Returns: string
+      }
       has_role: { Args: { target_role_name: string }; Returns: boolean }
     }
     Enums: {

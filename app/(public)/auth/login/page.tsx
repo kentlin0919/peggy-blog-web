@@ -1,11 +1,15 @@
 "use client";
+import { supabase } from "@/lib/supabase";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { AuthService } from "@/lib/application/auth/AuthService";
 import { SupabaseAuthRepository } from "@/lib/infrastructure/auth/SupabaseAuthRepository";
+import { useModal } from "@/app/components/providers/ModalContext";
+import EducationInputs from "@/app/components/ui/EducationInputs";
+import { useSchools } from "@/app/hooks/useSchools";
 
 const authRepository = new SupabaseAuthRepository();
 const authService = new AuthService(authRepository);
@@ -14,6 +18,8 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+  const { showModal } = useModal();
+  const schools = useSchools();
 
   // State for Login
   const [loginEmail, setLoginEmail] = useState("");
@@ -27,8 +33,16 @@ function LoginContent() {
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [regTeacherCode, setRegTeacherCode] = useState("");
+  // Education Fields
+  const [regSchool, setRegSchool] = useState("");
+  const [regStatus, setRegStatus] = useState("studying"); // Default
+  const [regDept, setRegDept] = useState("");
+
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
+
+  // Tab State
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,11 +66,38 @@ function LoginContent() {
       // Check if email verified
       const currentUser = await authService.getUser();
       const isEmailVerified = !!currentUser?.emailConfirmedAt;
+
+      // Check if account is active
+      if (currentUser) {
+        const { data: userInfo, error: userError } = await supabase
+          .from("user_info")
+          .select("is_active")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (userError) {
+          console.error("Error fetching user info:", userError);
+          // Optional: handle error, maybe fail open or closed?
+          // For now, let's allow login if we can't check, or fail?
+          // Safest is to log it and proceed if we can't definitively say they are inactive,
+          // OR fail if critical. Let's assume proceed but log error for now unless strict.
+        } else if (userInfo && userInfo.is_active === false) {
+          await authService.signOut();
+          setLoginError("帳號已被停用，請聯繫管理員");
+          setLoginLoading(false);
+          return;
+        }
+      }
+
       console.log("Email Verified:", isEmailVerified);
 
       if (!isEmailVerified) {
         /// 跳出視窗提示去 email 收信
-        alert("請至您的信箱收信完成驗證");
+        showModal({
+          title: "驗證提示",
+          description: "請至您的信箱收信完成驗證",
+          type: "info",
+        });
         return;
       }
 
@@ -101,16 +142,84 @@ function LoginContent() {
     setRegError(null);
 
     try {
+      // 1. Check if teacher_code exists (using RPC to bypass RLS)
+
+      const { data: teacherExists, error: teacherError } = await supabase.rpc(
+        "check_teacher_code_exists",
+        { code: regTeacherCode.trim() }
+      );
+
+      if (teacherError) {
+        console.error("Error checking teacher code:", teacherError);
+        setRegError("驗證教師代碼時發生錯誤");
+        setRegLoading(false);
+        return;
+      }
+
+      if (!teacherExists) {
+        setRegError("無效的教師代碼");
+        setRegLoading(false);
+        return;
+      }
+
+      // 2. Check if email already exists
+      const { data: existingUser, error: existingUserError } = await supabase
+        .from("user_info")
+        .select("id")
+        .eq("email", regEmail)
+        .maybeSingle();
+
+      if (existingUserError) {
+        console.error("Error checking email:", existingUserError);
+        setRegError("驗證 Email 時發生錯誤");
+        setRegLoading(false);
+        return;
+      }
+
+      // If we find a user, it's a duplicate.
+      if (existingUser) {
+        setRegError("此電子郵件已被註冊");
+        setRegLoading(false);
+        return;
+      }
+
+      // Find school code if matched
+      const matchedSchool = schools.find((s) => s.name === regSchool);
+      const schoolCode = matchedSchool ? matchedSchool.code : undefined;
+
       const { error } = await authService.signUp({
         email: regEmail,
         password: regPassword,
         fullName: regName,
         teacherCode: regTeacherCode,
+        education: {
+          schoolCode: schoolCode,
+          schoolName: regSchool,
+          statusKey: regStatus,
+          department: regDept,
+        },
       });
 
       if (error) throw error;
 
-      alert("註冊成功！請檢查您的電子信箱以進行驗證。");
+      showModal({
+        title: "註冊成功",
+        description: "請檢查您的電子信箱以進行驗證。",
+        type: "success",
+        confirmText: "前往登入",
+        onConfirm: () => {
+          setRegName("");
+          setRegEmail("");
+          setRegPassword("");
+          setRegConfirm("");
+          setRegTeacherCode("");
+          setRegSchool("");
+          setRegDept("");
+          setActiveTab("login");
+          // No explicit "setRegError(null)" needed as we're switching away, but good practice if they come back
+          setRegError(null);
+        },
+      });
     } catch (error: any) {
       console.error("Register Error:", error);
       setRegError(error.message || "註冊失敗，請稍後再試");
@@ -236,13 +345,16 @@ function LoginContent() {
                 id="tab-login"
                 name="auth-tabs"
                 type="radio"
-                defaultChecked
+                checked={activeTab === "login"}
+                onChange={() => setActiveTab("login")}
               />
               <input
                 className="peer/register hidden"
                 id="tab-register"
                 name="auth-tabs"
                 type="radio"
+                checked={activeTab === "register"}
+                onChange={() => setActiveTab("register")}
               />
               <div className="flex justify-center mb-8 gap-6 border-b border-slate-100 dark:border-gray-700 relative">
                 <label
@@ -258,7 +370,13 @@ function LoginContent() {
                   學員註冊
                 </label>
               </div>
-              <div className="hidden peer-checked/login:block animate-[fadeIn_0.3s_ease-out]">
+              <div
+                className={`hidden ${
+                  activeTab === "login"
+                    ? "!block animate-[fadeIn_0.3s_ease-out]"
+                    : ""
+                }`}
+              >
                 <form className="space-y-5" onSubmit={handleLogin}>
                   {loginError && (
                     <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-900/10 rounded-lg">
@@ -383,7 +501,13 @@ function LoginContent() {
                   </div>
                 </form>
               </div>
-              <div className="hidden peer-checked/register:block animate-[fadeIn_0.3s_ease-out]">
+              <div
+                className={`hidden ${
+                  activeTab === "register"
+                    ? "!block animate-[fadeIn_0.3s_ease-out]"
+                    : ""
+                }`}
+              >
                 <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 rounded-lg text-xs leading-relaxed flex gap-2">
                   <span className="material-symbols-outlined text-[18px] shrink-0">
                     info
@@ -490,6 +614,25 @@ function LoginContent() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Education Fields using Shared Component */}
+                  <div className="space-y-4">
+                    <EducationInputs
+                      school={regSchool}
+                      setSchool={setRegSchool}
+                      status={regStatus}
+                      setStatus={setRegStatus}
+                      department={regDept}
+                      setDepartment={setRegDept}
+                      labels={{
+                        school: "就讀學校",
+                        status: "就學狀態",
+                        department: "科系/所",
+                      }}
+                      className="gap-4"
+                    />
+                  </div>
+
                   <div className="space-y-1.5">
                     <label
                       className="text-sm font-bold text-slate-700 dark:text-gray-300"
@@ -499,7 +642,7 @@ function LoginContent() {
                     </label>
                     <div className="relative">
                       <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
-                        school
+                        key
                       </span>
                       <input
                         className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
@@ -596,6 +739,7 @@ function LoginContent() {
           </div>
         </div>
       </footer>
+      {/* Hidden Datalist for Schools removed in favor of SchoolCombobox */}
     </div>
   );
 }

@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Database } from '@/lib/database.types';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { Database } from "@/lib/database.types";
+import { useModal } from "@/app/components/providers/ModalContext";
 
-type UserInfo = Database['public']['Tables']['user_info']['Row'];
-type TeacherInfo = Database['public']['Tables']['teacher_info']['Row'];
+type UserInfo = Database["public"]["Tables"]["user_info"]["Row"];
+type TeacherInfo = Database["public"]["Tables"]["teacher_info"]["Row"];
 
 type TeacherData = UserInfo & {
   teacher_info: TeacherInfo | null;
@@ -15,8 +16,14 @@ type TeacherData = UserInfo & {
 export default function TeacherManagement() {
   const [teachers, setTeachers] = useState<TeacherData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  // Edit Mode
+  const [editingTeacher, setEditingTeacher] = useState<TeacherData | null>(
+    null
+  );
+  const { showModal } = useModal();
 
   useEffect(() => {
     fetchTeachers();
@@ -26,36 +33,153 @@ export default function TeacherManagement() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('user_info')
-        .select(`
+        .from("user_info")
+        .select(
+          `
           *,
           teacher_info (*)
-        `)
-        .eq('identity_id', 2)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .eq("identity_id", 2)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching teachers:', error);
+        console.error("Error fetching teachers:", error);
         return;
       }
 
       setTeachers(data as TeacherData[]);
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error("Unexpected error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleEditClick = (teacher: TeacherData) => {
+    setEditingTeacher(teacher);
+  };
+
+  const handleUpdateTeacher = async (formData: any) => {
+    if (!editingTeacher) return;
+
+    try {
+      // 1. Update user_info
+      const { error: userError } = await supabase
+        .from("user_info")
+        .update({
+          name: formData.name,
+          phone: formData.phone,
+          is_active: formData.is_active,
+        })
+        .eq("id", editingTeacher.id);
+
+      if (userError) throw userError;
+
+      // 2. Update teacher_info
+      if (editingTeacher.teacher_info) {
+        const { error: teacherError } = await supabase
+          .from("teacher_info")
+          .update({
+            title: formData.title,
+            bio: formData.bio,
+            base_price: formData.base_price,
+            experience_years: formData.experience_years,
+            is_public: formData.is_public,
+          })
+          .eq("id", editingTeacher.id);
+
+        if (teacherError) throw teacherError;
+      }
+
+      // 3. Update local state
+      setTeachers(
+        teachers.map((t) => {
+          if (t.id === editingTeacher.id) {
+            return {
+              ...t,
+              name: formData.name,
+              phone: formData.phone,
+              is_active: formData.is_active,
+              teacher_info: t.teacher_info
+                ? {
+                    ...t.teacher_info,
+                    title: formData.title,
+                    bio: formData.bio,
+                    base_price: formData.base_price,
+                    experience_years: formData.experience_years,
+                    is_public: formData.is_public,
+                  }
+                : null,
+            };
+          }
+          return t;
+        })
+      );
+
+      setEditingTeacher(null);
+      showModal({
+        title: "更新成功",
+        description: "教師資料已更新",
+        type: "success",
+      });
+    } catch (error: any) {
+      console.error("Update error:", error);
+      showModal({
+        title: "更新失敗",
+        description: error.message,
+        type: "error",
+      });
+    }
+  };
+
+  const handleDeleteTeacher = async (teacher: TeacherData) => {
+    showModal({
+      title: "永久刪除確認",
+      description: `您確定要永久刪除教師「${teacher.name}」嗎？此操作將刪除其所有課程、預約與關聯資料，且無法復原。`,
+      type: "warning",
+      confirmText: "確認刪除",
+      showCancel: true,
+      cancelText: "取消",
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase.rpc("admin_delete_user", {
+            target_user_id: teacher.id,
+          });
+
+          if (error) throw error;
+
+          setTeachers(teachers.filter((t) => t.id !== teacher.id));
+          if (editingTeacher?.id === teacher.id) {
+            setEditingTeacher(null);
+          }
+
+          showModal({
+            title: "刪除成功",
+            description: "該教師帳號已永久刪除",
+            type: "success",
+          });
+        } catch (error: any) {
+          console.error("Delete error:", error);
+          showModal({
+            title: "刪除失敗",
+            description: error.message,
+            type: "error",
+          });
+        }
+      },
+    });
+  };
+
   const filteredTeachers = teachers.filter((teacher) => {
     const matchesSearch =
-      searchQuery === '' ||
+      searchQuery === "" ||
       teacher.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       teacher.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = 
-      statusFilter === '' ||
-      (statusFilter === 'active' ? teacher.is_active : !teacher.is_active);
+
+    const matchesStatus =
+      statusFilter === "" ||
+      (statusFilter === "active" ? teacher.is_active : !teacher.is_active);
 
     return matchesSearch && matchesStatus;
   });
@@ -98,7 +222,7 @@ export default function TeacherManagement() {
         {/* Filters */}
         <div className="flex gap-4 overflow-x-auto pb-2 lg:pb-0">
           <div className="relative min-w-[160px]">
-            <select 
+            <select
               className="w-full h-12 pl-4 pr-10 appearance-none rounded-lg bg-gray-50 dark:bg-gray-900 border-transparent focus:border-sky-500 focus:ring-0 text-gray-900 dark:text-white cursor-pointer outline-none"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -111,22 +235,9 @@ export default function TeacherManagement() {
               expand_more
             </span>
           </div>
-          {/* 
-          <div className="relative min-w-[160px]">
-            <select className="w-full h-12 pl-4 pr-10 appearance-none rounded-lg bg-gray-50 dark:bg-gray-900 border-transparent focus:border-sky-500 focus:ring-0 text-gray-900 dark:text-white cursor-pointer outline-none">
-              <option value="">所有方案</option>
-              <option value="basic">基礎版</option>
-              <option value="pro">專業版</option>
-              <option value="enterprise">企業版</option>
-            </select>
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 pointer-events-none text-sm">
-              expand_more
-            </span>
-          </div>
-          */}
         </div>
       </div>
-      {/* Stats Summary (Quick View) - Optional: Make dynamic later */}
+      {/* Stats Summary (Quick View) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-3">
           <div className="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
@@ -150,7 +261,7 @@ export default function TeacherManagement() {
               啟用中
             </p>
             <p className="text-lg font-bold text-gray-900 dark:text-white">
-              {teachers.filter(t => t.is_active).length}
+              {teachers.filter((t) => t.is_active).length}
             </p>
           </div>
         </div>
@@ -167,11 +278,9 @@ export default function TeacherManagement() {
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[240px]">
                   電子郵件
                 </th>
-                {/* 
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  維護費方案
+                  職稱
                 </th>
-                */}
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   狀態
                 </th>
@@ -183,28 +292,54 @@ export default function TeacherManagement() {
             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     載入中...
                   </td>
                 </tr>
               ) : filteredTeachers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     查無資料
                   </td>
                 </tr>
               ) : (
                 filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id} className="group hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
+                  <tr
+                    key={teacher.id}
+                    className={`group transition-colors ${
+                      !teacher.is_active
+                        ? "bg-gray-50/50 dark:bg-gray-900/30"
+                        : "hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
+                    }`}
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div
                           className="size-10 rounded-full bg-cover bg-center shrink-0 border border-gray-200 dark:border-gray-700 bg-sky-100 flex items-center justify-center text-sky-600 font-bold"
+                          style={
+                            teacher.avatar_url
+                              ? {
+                                  backgroundImage: `url(${teacher.avatar_url})`,
+                                }
+                              : {}
+                          }
                         >
-                          {teacher.name.charAt(0)}
+                          {!teacher.avatar_url && teacher.name.charAt(0)}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          <span
+                            className={`text-sm font-bold ${
+                              !teacher.is_active
+                                ? "text-gray-500"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
                             {teacher.name}
                           </span>
                           <span className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
@@ -218,13 +353,11 @@ export default function TeacherManagement() {
                         {teacher.email}
                       </span>
                     </td>
-                    {/*
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800">
-                        {teacher.teacher_info?.base_price ? `$${teacher.teacher_info.base_price}` : '未設定'}
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {teacher.teacher_info?.title || "-"}
                       </span>
                     </td>
-                    */}
                     <td className="px-6 py-4">
                       {teacher.is_active ? (
                         <div className="flex items-center gap-2">
@@ -243,8 +376,9 @@ export default function TeacherManagement() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => handleEditClick(teacher)}
                           className="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
                           title="編輯"
                         >
@@ -253,6 +387,7 @@ export default function TeacherManagement() {
                           </span>
                         </button>
                         <button
+                          onClick={() => handleDeleteTeacher(teacher)}
                           className="size-8 flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors"
                           title="刪除"
                         >
@@ -268,9 +403,222 @@ export default function TeacherManagement() {
             </tbody>
           </table>
         </div>
-        {/* Pagination removed for now as we don't have backend pagination yet */}
       </div>
+
+      {/* Edit Modal */}
+      {editingTeacher && (
+        <EditTeacherModal
+          teacher={editingTeacher}
+          onClose={() => setEditingTeacher(null)}
+          onSave={handleUpdateTeacher}
+          onDelete={() => handleDeleteTeacher(editingTeacher)}
+        />
+      )}
     </div>
   );
 }
 
+function EditTeacherModal({
+  teacher,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  teacher: TeacherData;
+  onClose: () => void;
+  onSave: (data: any) => void;
+  onDelete: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: teacher.name,
+    phone: teacher.phone || "",
+    is_active: teacher.is_active,
+    title: teacher.teacher_info?.title || "",
+    bio: teacher.teacher_info?.bio || "",
+    base_price: teacher.teacher_info?.base_price || 0,
+    experience_years: teacher.teacher_info?.experience_years || 0,
+    is_public: teacher.teacher_info?.is_public ?? false,
+  });
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur z-10 rounded-t-2xl">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            編輯教師資料
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Account Status */}
+          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                帳號狀態
+              </p>
+              <p className="text-xs text-text-sub mt-0.5">
+                停用後教師將無法登入且不顯示於前台
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                checked={formData.is_active}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_active: e.target.checked })
+                }
+                className="sr-only peer"
+                type="checkbox"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              <span className="ml-2 text-sm font-bold text-primary">
+                {formData.is_active ? "啟用中" : "已停用"}
+              </span>
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                姓名
+              </label>
+              <input
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                連絡電話
+              </label>
+              <input
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                職稱 (Title)
+              </label>
+              <input
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                年資 (年)
+              </label>
+              <input
+                type="number"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.experience_years}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    experience_years: Number(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                基礎價格
+              </label>
+              <input
+                type="number"
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.base_price}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    base_price: Number(e.target.value),
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                公開顯示資料
+              </label>
+              <select
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                value={formData.is_public ? "true" : "false"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    is_public: e.target.value === "true",
+                  })
+                }
+              >
+                <option value="true">公開</option>
+                <option value="false">隱藏</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              個人簡介 (Bio)
+            </label>
+            <textarea
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none min-h-[100px]"
+              value={formData.bio}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
+            />
+          </div>
+
+          {/* Danger Zone */}
+          <div className="mt-8 pt-6 border-t border-red-100 dark:border-red-900/30">
+            <h4 className="text-red-600 font-bold mb-2 flex items-center gap-2">
+              <span className="material-symbols-outlined">warning</span>
+              危險操作
+            </h4>
+            <div className="flex justify-between items-center bg-red-50 dark:bg-red-900/10 p-4 rounded-xl">
+              <p className="text-sm text-red-600/80">
+                永久刪除此帳號與所有資料
+              </p>
+              <button
+                onClick={onDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg transition-colors"
+              >
+                永久刪除
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3 rounded-b-2xl bg-gray-50/50 dark:bg-gray-800/50">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-bold"
+          >
+            取消
+          </button>
+          <button
+            onClick={() => onSave(formData)}
+            className="px-6 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/30 font-bold"
+          >
+            儲存變更
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

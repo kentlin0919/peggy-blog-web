@@ -24,6 +24,12 @@ export interface RegisterCredentials {
   password: string;
   fullName: string;
   teacherCode?: string;
+  education?: {
+    schoolCode?: string;
+    schoolName: string;
+    statusKey: string;
+    department?: string;
+  };
 }
 
 export type AuthStateChangeCallback = (event: string, session: Session | null) => void;

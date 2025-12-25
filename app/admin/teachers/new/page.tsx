@@ -1,28 +1,30 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
-import { useState } from 'react';
-import { Database } from '@/lib/database.types';
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { useState } from "react";
+import { Database } from "@/lib/database.types";
+import { useRouter } from "next/navigation";
+import { useModal } from "@/app/components/providers/ModalContext";
 
 export default function AddTeacherPage() {
   const router = useRouter();
-  
+  const { showModal } = useModal();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form State
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  // Plan is currently just UI in the form, we can store it in metadata if needed, 
+  // Plan is currently just UI in the form, we can store it in metadata if needed,
   // currently DB schema might not have 'plan' column on teacher_info or user_info.
   // We'll focus on creating the teacher first. The prompt didn't ask for Plan DB schema changes.
-  const [status, setStatus] = useState('active'); // active | disabled
+  const [status, setStatus] = useState("active"); // active | disabled
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,12 +33,12 @@ export default function AddTeacherPage() {
 
     // 1. Validation
     if (password !== confirmPassword) {
-      setError('密碼不一致');
+      setError("密碼不一致");
       setLoading(false);
       return;
     }
     if (password.length < 6) {
-      setError('密碼長度至少需 6 碼');
+      setError("密碼長度至少需 6 碼");
       setLoading(false);
       return;
     }
@@ -44,17 +46,22 @@ export default function AddTeacherPage() {
     try {
       // 1.5 Check if email already exists (using RPC)
       // We use the admin client (supabase) to check, because authorized client can call the secure RPC
-      const { data: emailExists, error: checkError } = await supabase.rpc('admin_check_email_exists', {
-        email_arg: email
-      });
+      const { data: emailExists, error: checkError } = await supabase.rpc(
+        "admin_check_email_exists",
+        {
+          email_arg: email,
+        }
+      );
 
       if (checkError) {
-        console.error('Email check failed:', checkError);
-        throw new Error(`無法驗證 Email: ${checkError.message} (${checkError.code})`);
+        console.error("Email check failed:", checkError);
+        throw new Error(
+          `無法驗證 Email: ${checkError.message} (${checkError.code})`
+        );
       }
 
       if (emailExists) {
-        setError('此電子郵件已被註冊');
+        setError("此電子郵件已被註冊");
         setLoading(false);
         return;
       }
@@ -73,49 +80,61 @@ export default function AddTeacherPage() {
       );
 
       // 3. Helper: Sign up the teacher
-      const { data: authData, error: authError } = await tempSupabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name: name,
-          }
-        }
-      });
+      const { data: authData, error: authError } =
+        await tempSupabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name,
+            },
+          },
+        });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('User creation failed');
+      if (!authData.user) throw new Error("User creation failed");
 
       // 4. Promote to Teacher (using Admin RPC)
       // The new user is created as Student (id=3) by default trigger.
       // We verify ourselves as Admin and call the RPC to promote them.
-      const { error: rpcError } = await supabase.rpc('admin_promote_to_teacher', {
-        target_user_id: authData.user.id,
-        teacher_name: name,
-        is_active: status === 'active',
-      });
+      const { error: rpcError } = await supabase.rpc(
+        "admin_promote_to_teacher",
+        {
+          target_user_id: authData.user.id,
+          teacher_name: name,
+          is_active: status === "active",
+        }
+      );
 
       if (rpcError) {
-        console.error('Promotion failed:', rpcError);
-        
+        console.error("Promotion failed:", rpcError);
+
         // --- ROLLBACK LOGIC ---
         // If promotion fails, we must delete the user we just created to avoid
         // leaving a "Student" account with the teacher's email.
-        console.log('Initiating rollback: Deleting incomplete user account...');
+        console.log("Initiating rollback: Deleting incomplete user account...");
         try {
-          const { error: deleteError } = await supabase.rpc('admin_delete_user', {
-            target_user_id: authData.user.id
-          });
-          
+          const { error: deleteError } = await supabase.rpc(
+            "admin_delete_user",
+            {
+              target_user_id: authData.user.id,
+            }
+          );
+
           if (deleteError) {
-            console.error('Rollback failed! User may still exist:', deleteError);
-            throw new Error(`新增失敗且回滾失敗: ${rpcError.message} (請聯繫管理員手動刪除帳號)`);
+            console.error(
+              "Rollback failed! User may still exist:",
+              deleteError
+            );
+            throw new Error(
+              `新增失敗且回滾失敗: ${rpcError.message} (請聯繫管理員手動刪除帳號)`
+            );
           } else {
-            console.log('Rollback successful: User deleted.');
+            console.log("Rollback successful: User deleted.");
           }
         } catch (rollbackErr) {
-            console.error('Rollback exception:', rollbackErr);
-            // Don't overwrite the original error, but maybe append info
+          console.error("Rollback exception:", rollbackErr);
+          // Don't overwrite the original error, but maybe append info
         }
         // ----------------------
 
@@ -123,12 +142,15 @@ export default function AddTeacherPage() {
       }
 
       // Success
-      alert('教師帳號新增成功！');
-      router.push('/admin/teachers');
-
+      showModal({
+        title: "成功",
+        description: "教師帳號新增成功！",
+        confirmText: "確定",
+        onConfirm: () => router.push("/admin/teachers"),
+      });
     } catch (err: any) {
-      console.error('Error adding teacher:', err);
-      setError(err.message || '新增失敗，請稍後再試');
+      console.error("Error adding teacher:", err);
+      setError(err.message || "新增失敗，請稍後再試");
     } finally {
       setLoading(false);
     }
@@ -165,7 +187,7 @@ export default function AddTeacherPage() {
               <span className="text-sm font-bold">{error}</span>
             </div>
           )}
-          
+
           {/* Basic Information */}
           <div className="flex flex-col gap-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -220,7 +242,7 @@ export default function AddTeacherPage() {
                     type="button"
                   >
                     <span className="material-symbols-outlined text-[20px]">
-                      {showPassword ? 'visibility' : 'visibility_off'}
+                      {showPassword ? "visibility" : "visibility_off"}
                     </span>
                   </button>
                 </div>
@@ -281,8 +303,8 @@ export default function AddTeacherPage() {
                 <div className="flex items-center gap-4 h-12 bg-gray-50 dark:bg-gray-900 rounded-xl px-4 border-2 border-transparent">
                   <label className="flex items-center gap-2 cursor-pointer group">
                     <input
-                      checked={status === 'active'}
-                      onChange={() => setStatus('active')}
+                      checked={status === "active"}
+                      onChange={() => setStatus("active")}
                       className="size-4 text-sky-500 focus:ring-sky-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
                       name="status"
                       type="radio"
@@ -295,8 +317,8 @@ export default function AddTeacherPage() {
                   <div className="w-px h-4 bg-gray-300 dark:bg-gray-700"></div>
                   <label className="flex items-center gap-2 cursor-pointer group">
                     <input
-                      checked={status === 'disabled'}
-                      onChange={() => setStatus('disabled')}
+                      checked={status === "disabled"}
+                      onChange={() => setStatus("disabled")}
                       className="size-4 text-gray-400 focus:ring-gray-400 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
                       name="status"
                       type="radio"
@@ -326,13 +348,15 @@ export default function AddTeacherPage() {
               type="submit"
             >
               {loading ? (
-                 <span className="material-symbols-outlined animate-spin text-[20px]">sync</span>
+                <span className="material-symbols-outlined animate-spin text-[20px]">
+                  sync
+                </span>
               ) : (
                 <span className="material-symbols-outlined text-[20px]">
                   check
                 </span>
               )}
-              <span>{loading ? '處理中...' : '確認新增'}</span>
+              <span>{loading ? "處理中..." : "確認新增"}</span>
             </button>
           </div>
         </form>

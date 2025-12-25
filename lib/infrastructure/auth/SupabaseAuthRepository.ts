@@ -34,6 +34,7 @@ export class SupabaseAuthRepository implements AuthRepository {
         data: {
           full_name: credentials.fullName,
           teacher_code: credentials.teacherCode,
+          education: credentials.education,
         },
       },
     });
