@@ -157,6 +157,43 @@ export async function generateStaticParams() {
 
 透過這種分層，即使專案規模擴大，也能保持清晰的結構與良好的可擴展性。
 
+## 資料庫版本控制規範 (Supabase Gitignore)
+
+本專案預設會將 Supabase 的資料庫結構定義 (Schema) 和初始資料 (Seed Data) 納入 Git 版本控制，以確保開發、協作與部署的一致性。
+
+### 追蹤的重要性
+
+*   **`supabase/migrations/` (Schema 定義)**：這些檔案記錄了資料庫結構從零開始到目前狀態的所有變更步驟。無論是重建本地開發環境、部署到新環境，還是回溯資料庫版本，都極度依賴這些檔案。即使是單人開發，它們也是重建資料庫、確保不同環境（如開發、測試、生產）Schema 一致性的關鍵。
+*   **`supabase/seed.sql` (初始資料)**：此檔案包含資料庫在啟動後所需的基本常數資料，例如身份類型、預設狀態等。它確保每次資料庫重置 (`supabase db reset`) 後，應用程式都能擁有必要的初始數據。
+*   **`supabase/functions/` (Edge Functions)**：Edge Functions 的程式碼也應被追蹤，以確保雲端邏輯的一致性。
+
+### `.gitignore` 預設設定
+
+為達成上述目標，本專案的 `.gitignore` 對 `supabase/` 目錄的預設設定如下：
+
+```
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/functions/*/deno.lock
+supabase/functions/*/target/
+```
+
+此設定確保了 `supabase/migrations/`、`supabase/seed.sql` 和 `supabase/functions/` 中的程式碼會被正常追蹤，同時忽略了 `supabase` CLI 產生的本地暫存或快取檔案。
+
+### 特殊考量與風險
+
+在某些特定情況下（例如專案為公開開源，且專案擁有者希望保護資料庫 Schema 的設計細節，不對外公開所有 Table 名稱或結構），可能會選擇將 `supabase/migrations/` 和 `supabase/seed.sql` 加入 `.gitignore`。
+
+**若選擇忽略這些檔案，請務必了解以下風險：**
+
+*   **失去資料庫 Schema 的版本控制**：一旦這些檔案被忽略，資料庫結構的歷史變更將無法透過 Git 追溯。
+*   **環境重建困難**：在新的開發環境或部署流程中，將無法透過自動化方式重建資料庫結構。
+*   **協作複雜性增加**：若有多人開發，將難以確保資料庫 Schema 的同步與一致性。
+*   **部署風險**：部署到遠端 Supabase 專案時，需要手動管理或重新生成 Migration，增加了操作的複雜度與錯誤率。
+
+強烈建議：除非您明確了解並接受上述風險，否則應維持 `migrations` 和 `seed.sql` 被 Git 追蹤。資料庫的安全性主要應依賴於 Supabase 的 Row Level Security (RLS) 策略，而非隱藏 Schema。
+
 ## 功能模組詳情
 
 ### 前台 (學生端)
