@@ -87,6 +87,7 @@ export default function AddTeacherPage() {
           options: {
             data: {
               name: name,
+              role: "teacher",
             },
           },
         });

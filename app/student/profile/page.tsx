@@ -74,7 +74,7 @@ export default function StudentProfilePage() {
         .from("user_info")
         .select("*")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

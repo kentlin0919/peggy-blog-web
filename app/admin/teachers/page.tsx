@@ -5,12 +5,20 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/lib/database.types";
 import { useModal } from "@/app/components/providers/ModalContext";
+import EducationInputs from "@/app/components/ui/EducationInputs";
 
 type UserInfo = Database["public"]["Tables"]["user_info"]["Row"];
 type TeacherInfo = Database["public"]["Tables"]["teacher_info"]["Row"];
+type TeacherEducation =
+  Database["public"]["Tables"]["teacher_education"]["Row"] & {
+    schools: { name: string } | null;
+    education_statuses: { status_key: string } | null;
+  };
 
 type TeacherData = UserInfo & {
-  teacher_info: TeacherInfo | null;
+  teacher_info:
+    | (TeacherInfo & { teacher_education: TeacherEducation[] })
+    | null;
 };
 
 export default function TeacherManagement() {
@@ -37,7 +45,14 @@ export default function TeacherManagement() {
         .select(
           `
           *,
-          teacher_info (*)
+          teacher_info (
+            *,
+            teacher_education (
+              *,
+              schools (name),
+              education_statuses (status_key)
+            )
+          )
         `
         )
         .eq("identity_id", 2)
@@ -62,6 +77,9 @@ export default function TeacherManagement() {
 
   const handleUpdateTeacher = async (formData: any) => {
     if (!editingTeacher) return;
+
+    let schoolId: string | null = null;
+    let statusId: number | null = null;
 
     try {
       // 1. Update user_info
@@ -90,6 +108,53 @@ export default function TeacherManagement() {
           .eq("id", editingTeacher.id);
 
         if (teacherError) throw teacherError;
+
+        // 3. Update teacher_education
+        // Resolve IDs
+        // 3. Update teacher_education
+        // Resolve IDs
+        if (formData.school) {
+          const { data: schoolData } = await supabase
+            .from("schools")
+            .select("id")
+            .eq("name", formData.school)
+            .single();
+          schoolId = schoolData?.id || null;
+        }
+
+        if (formData.status) {
+          const { data: statusData } = await supabase
+            .from("education_statuses")
+            .select("id")
+            .eq("status_key", formData.status)
+            .single();
+          statusId = statusData?.id || null;
+        }
+
+        if (schoolId && statusId) {
+          // Check if exists
+          const existingEdu =
+            editingTeacher.teacher_info.teacher_education?.[0];
+
+          if (existingEdu) {
+            await supabase
+              .from("teacher_education")
+              .update({
+                school_id: schoolId,
+                status_id: statusId,
+                department: formData.department,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", existingEdu.id);
+          } else {
+            await supabase.from("teacher_education").insert({
+              teacher_id: editingTeacher.teacher_info.id,
+              school_id: schoolId,
+              status_id: statusId,
+              department: formData.department,
+            });
+          }
+        }
       }
 
       // 3. Update local state
@@ -109,6 +174,23 @@ export default function TeacherManagement() {
                     base_price: formData.base_price,
                     experience_years: formData.experience_years,
                     is_public: formData.is_public,
+                    // Optimistic update of education
+                    teacher_education: [
+                      {
+                        ...(t.teacher_info?.teacher_education?.[0] || {}), // Keep ID if exists
+                        id:
+                          t.teacher_info?.teacher_education?.[0]?.id ||
+                          "temp-id",
+                        teacher_id: t.id,
+                        school_id: schoolId || "", // Might be null if not found (unexpected)
+                        status_id: statusId || 0,
+                        department: formData.department,
+                        schools: { name: formData.school },
+                        education_statuses: { status_key: formData.status },
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                      } as any, // TS hack for simple optimistic update
+                    ],
                   }
                 : null,
             };
@@ -279,7 +361,7 @@ export default function TeacherManagement() {
                   電子郵件
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  職稱
+                  學歷
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   狀態
@@ -354,8 +436,25 @@ export default function TeacherManagement() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {teacher.teacher_info?.title || "-"}
+                      <span className="text-sm text-gray-500 dark:text-gray-400 block max-w-[200px] truncate">
+                        {(() => {
+                          const edu =
+                            teacher.teacher_info?.teacher_education?.[0];
+                          if (!edu) return "-";
+                          return (
+                            <>
+                              <span className="text-gray-900 dark:text-white font-medium">
+                                {edu.schools?.name}
+                              </span>
+                              {edu.department && (
+                                <span className="text-xs ml-1.5 text-gray-500">
+                                  {" "}
+                                  {edu.department}
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -429,6 +528,7 @@ function EditTeacherModal({
   onSave: (data: any) => void;
   onDelete: () => void;
 }) {
+  const edu = teacher.teacher_info?.teacher_education?.[0];
   const [formData, setFormData] = useState({
     name: teacher.name,
     phone: teacher.phone || "",
@@ -438,6 +538,9 @@ function EditTeacherModal({
     base_price: teacher.teacher_info?.base_price || 0,
     experience_years: teacher.teacher_info?.experience_years || 0,
     is_public: teacher.teacher_info?.is_public ?? false,
+    school: edu?.schools?.name || "",
+    status: edu?.education_statuses?.status_key || "studying",
+    department: edu?.department || "",
   });
 
   return (
@@ -507,15 +610,23 @@ function EditTeacherModal({
                 }
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                職稱 (Title)
+            {/* Replaced Title with EducationInputs */}
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">
+                學歷資訊
               </label>
-              <input
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:ring-2 focus:ring-primary/20 outline-none"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
+              <EducationInputs
+                school={formData.school}
+                setSchool={(v) =>
+                  setFormData((prev) => ({ ...prev, school: v }))
+                }
+                status={formData.status}
+                setStatus={(v) =>
+                  setFormData((prev) => ({ ...prev, status: v }))
+                }
+                department={formData.department}
+                setDepartment={(v) =>
+                  setFormData((prev) => ({ ...prev, department: v }))
                 }
               />
             </div>
