@@ -1,168 +1,361 @@
-import React from "react";
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "使用者條款 | TimeCarve 刻時",
-  description: "TimeCarve 刻時 使用者條款（Terms of Service），規範雙方權利義務。",
-};
+import React, { useEffect } from "react";
+import Link from "next/link";
+// import { cn } from "@/lib/utils"; // Assuming cn utility exists, usually in lib/utils. If not, I'll use template literals but cn is standard in modern Next.js/Tailwind setups. I'll stick to standard string concatenation or simple template literals to be safe if I don't see utils.
+// Actually, looking at previous file reads, I don't see lib/utils explicitly confirmed, but it's very common.
+// Safest is to just use standard className strings as per the user's provided HTML.
+
+// Icons
+// The user's design used Google Fonts Material Icons.
+// I will use text-based Material Symbols (if font is loaded) or SVG icons to be safe and self-contained if possible.
+// The existing file used specific material-symbols-outlined spans. I will continue to use that pattern as it seems established in the project.
 
 export default function TermsPage() {
+  // Simple smooth scroll handler for the sidebar
+  const scrollToSection = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-primary">arrow_back</span>
-            回首頁
-          </Link>
-          <div className="flex gap-4 text-sm text-gray-500">
-             <span className="text-gray-900">使用者條款</span>
-             <span>|</span>
-             <Link href="/legal/privacy" className="hover:text-primary transition-colors">隱私權政策</Link>
+    <div className="font-sans bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-300 min-h-screen">
+      {/* Nav is usually handled by the layout, but the user provided a full HTML page. 
+                I will assume the layout wraps this, but checking the file path `app/(public)/legal/terms/page.tsx` 
+                suggests it shares a layout with other public pages. 
+                The user's HTML included a specific Nav. 
+                Since this is a specific page request, I will adhere to the provided design's inner content structure 
+                but I should be careful about double navs if `app/(public)/layout.tsx` already has one.
+                However, looking at the previous file content, it had its own header.
+                I will implement the HEADER from the design as the page header, and the main content.
+            */}
+
+      {/* Hero Header */}
+      <header className="bg-slate-50 dark:bg-slate-950 px-6 py-16 border-b border-slate-200 dark:border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="mb-6">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors group"
+            >
+              <span className="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">
+                arrow_back
+              </span>
+              <span className="text-sm font-bold">返回首頁</span>
+            </Link>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
+            使用者條款
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl text-lg">
+            歡迎使用 TimeCarve
+            刻時。本條款旨在保障您的權益，並規範您與本平台之間的權利義務。本條款依據中華民國《消費者保護法》及《網際網路教學服務定型化契約應記載及不得記載事項》制定。
+          </p>
+          <div className="mt-4 text-sm text-slate-500 dark:text-slate-500">
+            最後更新日期：2025年12月24日
           </div>
         </div>
       </header>
 
-      <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-8 md:p-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 text-center">
-            使用者服務條款
-          </h1>
-          <p className="text-center text-gray-500 mb-8">
-            生效日期：2025 年 12 月 21 日
-          </p>
+      <main className="max-w-5xl mx-auto px-6 py-12 flex flex-col md:flex-row gap-12">
+        {/* Sidebar Navigation */}
+        <aside className="md:w-1/4 flex-shrink-0">
+          <div className="sticky top-24 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden ring-1 ring-slate-900/5">
+            <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
+                目錄導覽
+              </h3>
+            </div>
+            <nav className="flex flex-col text-sm py-2">
+              <a
+                onClick={(e) => scrollToSection(e, "section-1")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-1"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  description
+                </span>
+                1. 認知與接受條款
+              </a>
+              <a
+                onClick={(e) => scrollToSection(e, "section-2")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-2"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  person_check
+                </span>
+                2. 會員註冊與義務
+              </a>
+              <a
+                onClick={(e) => scrollToSection(e, "section-3")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-3"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  payments
+                </span>
+                3. 付款與退費政策
+              </a>
+              <a
+                onClick={(e) => scrollToSection(e, "section-4")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-4"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  copyright
+                </span>
+                4. 智慧財產權
+              </a>
+              <a
+                onClick={(e) => scrollToSection(e, "section-5")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-5"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  block
+                </span>
+                5. 暫停與終止服務
+              </a>
+              <a
+                onClick={(e) => scrollToSection(e, "section-6")}
+                className="group flex items-center px-5 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-sky-500 dark:hover:text-sky-400 transition-colors border-l-[3px] border-transparent hover:border-sky-500 cursor-pointer"
+                href="#section-6"
+              >
+                <span className="material-symbols-outlined text-[20px] mr-3">
+                  gavel
+                </span>
+                6. 準據法與管轄
+              </a>
+            </nav>
+          </div>
+        </aside>
 
-          <div className="space-y-8 text-gray-600 leading-relaxed text-justify">
-            <section>
-              <p className="mb-4">
-                歡迎您使用 TimeCarve 刻時（以下簡稱「本平台」）。本平台係由 [您的公司/團隊名稱]（以下簡稱「我們」）所經營。為了保障您的權益，請您在註冊或使用本服務前，詳細閱讀本使用者服務條款（以下簡稱「本條款」）。
-              </p>
-              <p className="font-bold text-gray-800">
-                當您完成註冊或開始使用本服務時，即視為您已閱讀、瞭解並同意接受本條款之所有內容。若您不同意本條款之全部或部分內容，請您立即停止使用本服務。
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                一、會員註冊與帳號安全
-              </h2>
-              <ul className="list-decimal pl-6 space-y-3">
-                <li>
-                  <strong>註冊義務：</strong>您同意於註冊時提供正確、最新及完整的個人資料，並維持該資料之即時性。若您提供任何錯誤、不實或不完整的資料，本平台有權暫停或終止您的帳號。
-                </li>
-                <li>
-                  <strong>行為能力：</strong>若您未滿 20 歲，應於您的法定代理人（家長或監護人）閱讀、瞭解並同意本條款之所有內容後，方得註冊及使用本服務。
-                </li>
-                <li>
-                  <strong>帳號保管：</strong>您有義務妥善保管您的帳號及密碼，並對該帳號登入後所進行之一切活動負責。請勿將帳號出借、轉讓或與他人共用。
-                </li>
-                <li>
-                  <strong>安全通知：</strong>若您發現您的帳號遭到盜用或有其他安全漏洞，應立即通知本平台，以便我們採取適當措施。
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                二、使用者行為規範
-              </h2>
-              <p className="mb-4">您同意並承諾不利用本服務從事任何侵害他人權益或違法之行為，包括但不限於：</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>上載、張貼、公布或傳送任何誹謗、侮辱、具威脅性、攻擊性、不雅、猥褻、不實、違反公共秩序或善良風俗之文字、圖片或任何形式的檔案。</li>
-                <li>侵害他人名譽、隱私權、營業秘密、商標權、著作權、專利權、其他智慧財產權及其他權利。</li>
-                <li>違反依法律或契約所應負之保密義務。</li>
-                <li>冒用他人名義使用本服務。</li>
-                <li>上載、張貼、傳輸或散佈任何含有電腦病毒或對電腦軟、硬體產生中斷、破壞或限制功能之程式碼之資料。</li>
-                <li>從事不法交易行為或張貼虛假不實、引人犯罪之訊息。</li>
-                <li>其他本平台有正當理由認為不適當之行為。</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                三、服務內容與變更
-              </h2>
-              <ul className="list-decimal pl-6 space-y-3">
-                <li>
-                  <strong>服務內容：</strong>本平台主要提供線上課程資訊瀏覽、課程預約、作品集展示等服務。
-                </li>
-                <li>
-                  <strong>服務變更：</strong>本平台保留隨時修改、暫停或終止本服務之全部或部分內容之權利，並將於網站公告，恕不另行個別通知。
-                </li>
-                <li>
-                  <strong>系統維護：</strong>於發生下列情形之一時，本平台有權可以停止、中斷提供本服務：
-                  <ul className="list-disc pl-4 mt-1 space-y-1 text-gray-500">
-                    <li>本平台資訊設備進行必要之保養及施工時。</li>
-                    <li>發生突發性之電子通信設備故障時。</li>
-                    <li>本平台申請之電子通信服務被停止，無法提供服務時。</li>
-                    <li>由於天災等不可抗力之因素致使本平台無法提供服務時。</li>
-                  </ul>
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                四、智慧財產權保護
-              </h2>
-              <ul className="list-decimal pl-6 space-y-3">
-                <li>
-                  <strong>平台內容：</strong>本平台所使用之軟體或程式、網站上所有內容，包括但不限於著作、圖片、檔案、資訊、資料、網站架構、網站畫面的安排、網頁設計，均由本平台或其他權利人依法擁有其智慧財產權。
-                </li>
-                <li>
-                  <strong>授權限制：</strong>若您購買或預約本平台之課程，您僅取得該課程內容之「個人」、「非專屬」、「不可轉讓」之使用權。您不得將課程內容重製、公開傳輸、轉售、分享帳號給他人或進行其他商業利用。
-                </li>
-                <li>
-                  <strong>使用者內容：</strong>您上傳至本平台之作品集、評論或其他內容，您保留其著作權，但同意授權本平台為推廣服務之目的，進行合理之重製、公開傳輸及編輯。
-                </li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                五、付費與退費政策
-              </h2>
-              <p className="mb-4">
-                若本平台提供付費課程服務，相關付費方式、價格及退費規定將依各課程頁面說明為主。原則上，本平台參照行政院公告之《網際網路教學服務定型化契約範本》辦理退費事宜。
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                六、免責聲明
-              </h2>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>本平台不保證各項服務之穩定、安全、無誤、及不中斷。</li>
-                <li>本平台對於您使用本服務或經由本服務連結之其他網站而取得之任何資訊，不擔保其真實性、完整性、即時性或可靠性。</li>
-                <li>對於您透過本平台刊登或發布之虛假、違法資訊、侵害他人權益及欺騙、敲詐行為者，純屬您個人行為，本平台對此不負任何責任。</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                七、準據法與管轄法院
-              </h2>
+        <article className="md:w-3/4 space-y-12">
+          {/* Section 1 */}
+          <section id="section-1" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+              <span className="text-sky-500 mr-3 text-lg font-light">01.</span>{" "}
+              認知與接受條款
+            </h2>
+            <div className="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed text-justify">
               <p>
-                本條款之解釋與適用，以及與本條款有關之爭議，均應依照中華民國法律予以處理，並以台灣台北地方法院為第一審管轄法院。
+                TimeCarve
+                刻時（以下簡稱「本平台」）係依據本使用者條款提供服務。當您註冊完成或開始使用本服務時，即表示您已閱讀、瞭解並同意接受本條款之所有內容。
               </p>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 border-gray-100">
-                八、聯絡我們
-              </h2>
               <p>
-                若您對本使用者條款有任何疑問，歡迎透過以下方式與我們聯繫：
+                若您為未滿 18
+                歲之法律上限制行為能力人，應由您的法定代理人（如家長或監護人）閱讀、瞭解並同意本條款之所有內容及其後修改變更後，方得註冊及使用本服務。當您使用或繼續使用本服務時，即推定您的法定代理人已閱讀、瞭解並同意接受本條款。
               </p>
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium text-gray-900">TimeCarve 刻時 客服中心</p>
-                <p className="text-gray-600 mt-1">Email: support@timecarve.com</p>
+            </div>
+          </section>
+
+          {/* Section 2 */}
+          <section id="section-2" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+              <span className="text-sky-500 mr-3 text-lg font-light">02.</span>{" "}
+              會員註冊與義務
+            </h2>
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700 space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed shadow-sm">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  <span className="material-symbols-outlined text-sky-500">
+                    check_circle
+                  </span>
+                </div>
+                <p>
+                  <strong className="text-slate-900 dark:text-white">
+                    真實資料：
+                  </strong>
+                  您同意於註冊時提供正確、最新及完整的個人資料。若您提供任何錯誤或不實的資料，本平台有權暫停或終止您的帳號，並拒絕您使用本服務之全部或一部。
+                </p>
               </div>
-            </section>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0 mt-1">
+                  <span className="material-symbols-outlined text-sky-500">
+                    check_circle
+                  </span>
+                </div>
+                <p>
+                  <strong className="text-slate-900 dark:text-white">
+                    帳號安全：
+                  </strong>
+                  您的帳號及密碼由您自行保管。您同意不將帳號、密碼轉讓或出借給他人使用。若您發現帳號遭盜用，應立即通知本平台。
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 3 */}
+          <section id="section-3" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+              <span className="text-sky-500 mr-3 text-lg font-light">03.</span>{" "}
+              付款與退費政策
+            </h2>
+            <div className="space-y-6 text-slate-600 dark:text-slate-300 leading-relaxed text-justify">
+              <p>
+                本平台之課程服務屬於「非以有形媒介提供之數位內容或一經提供即為完成之線上服務」。依據行政院訂定之《網際網路教學服務定型化契約應記載及不得記載事項》，退費規定如下：
+              </p>
+
+              <div className="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-lg">
+                <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                  <thead className="bg-slate-50 dark:bg-slate-800">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                      >
+                        使用程度 / 期間
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                      >
+                        退費比例
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-700">
+                    <tr>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-slate-200">
+                        未開始使用 或 使用時數&lt;10%
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-sky-600 dark:text-sky-400 font-bold">
+                        全額退費
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        使用時數 10% ~ 30%
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        退還 50% 費用
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        使用時數 &gt; 30%
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        不予退費
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <p className="text-sm bg-blue-50 dark:bg-slate-800/50 p-4 rounded-md border-l-4 border-sky-500">
+                <strong className="block mb-1 text-sky-700 dark:text-sky-400">
+                  關於猶豫期之例外
+                </strong>
+                依《消費者保護法》第19條及《通訊交易解除權合理例外情事適用準則》，若本平台已提供試讀、試聽機會，且經消費者同意始提供之數位內容，將
+                <strong>不適用 7 日猶豫期（鑑賞期）</strong>
+                之規定。請您在購買前充分利用試用資源。
+              </p>
+            </div>
+          </section>
+
+          {/* Section 4 */}
+          <section id="section-4" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+              <span className="text-sky-500 mr-3 text-lg font-light">04.</span>{" "}
+              智慧財產權
+            </h2>
+            <div className="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed text-justify">
+              <p>
+                TimeCarve
+                刻時平台上的所有內容，包括但不限於文字、圖片、影片、檔案、網站架構、網頁設計，均由本平台或其他權利人依法擁有其智慧財產權，包括商標權、專利權、著作權、營業秘密與專有技術等。
+              </p>
+              <p>
+                <strong>授權範圍：</strong>
+                您購買課程後，僅取得該課程之「個人非專屬使用權」。嚴禁將課程內容進行側錄、重製、公開傳輸、轉售、共享帳號或用於任何商業用途。若有違反，本平台將依法追究相關法律責任並請求損害賠償。
+              </p>
+            </div>
+          </section>
+
+          {/* Section 5 */}
+          <section id="section-5" className="scroll-mt-28">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+              <span className="text-sky-500 mr-3 text-lg font-light">05.</span>{" "}
+              暫停與終止服務
+            </h2>
+            <div className="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed text-justify">
+              <p>
+                本平台將盡力維護服務之正常運作。但在下列情形下，本平台有權暫停或中斷本服務之全部或一部，且對使用者任何直接或間接之損害，均不負任何賠償或補償之責任：
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>
+                  本平台相關軟硬體設備進行搬遷、更換、升級、保養或維修時。
+                </li>
+                <li>使用者有任何違反政府法令或本使用條款情形。</li>
+                <li>天災或其他不可抗力之因素所致之服務停止或中斷。</li>
+                <li>
+                  非本平台所得控制之事項而致本服務資訊顯示不正確、或遭偽造、竄改、刪除或擷取、或致系統中斷或不能正常運作時。
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 6 */}
+          <section
+            id="section-6"
+            className="scroll-mt-28 border-t border-slate-200 dark:border-slate-700 pt-8"
+          >
+            <div className="flex items-start">
+              <span className="material-symbols-outlined text-slate-400 mr-3 mt-1">
+                gavel
+              </span>
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white text-lg">
+                  準據法與管轄法院
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300 mt-2 text-justify">
+                  本條款之解釋與適用，以及與本條款有關的爭議，均應依照中華民國法律予以處理，並以
+                  <strong>臺灣臺北地方法院</strong>為第一審管轄法院。
+                </p>
+              </div>
+            </div>
+          </section>
+        </article>
+      </main>
+
+      <footer className="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-12 px-6 mt-12">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-sm text-slate-500 dark:text-slate-400">
+          <div className="mb-4 md:mb-0 flex items-center">
+            <span className="font-bold text-slate-700 dark:text-slate-300 mr-2">
+              TimeCarve 刻時
+            </span>
+            <span>© 2025 版權所有</span>
+          </div>
+          <div className="flex space-x-8">
+            <Link
+              href="/legal/privacy"
+              className="hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+            >
+              隱私權政策
+            </Link>
+            <a
+              href="#"
+              className="hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+            >
+              Cookie 政策
+            </a>
+            <a
+              href="mailto:support@timecarve.com"
+              className="hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+            >
+              聯繫我們
+            </a>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

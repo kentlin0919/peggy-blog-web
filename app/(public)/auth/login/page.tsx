@@ -1,28 +1,32 @@
-'use client';
+"use client";
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { AuthService } from "@/lib/application/auth/AuthService";
+import { SupabaseAuthRepository } from "@/lib/infrastructure/auth/SupabaseAuthRepository";
+
+const authRepository = new SupabaseAuthRepository();
+const authService = new AuthService(authRepository);
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get("redirect") || "/";
 
   // State for Login
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // State for Register
-  const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPassword, setRegPassword] = useState('');
-  const [regConfirm, setRegConfirm] = useState('');
-  const [regTeacherCode, setRegTeacherCode] = useState('');
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+  const [regTeacherCode, setRegTeacherCode] = useState("");
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
 
@@ -32,43 +36,55 @@ function LoginContent() {
     setLoginError(null);
 
     try {
-      const { data: { user }, error: authError } = await supabase.auth.signInWithPassword({
+      const { user, error: authError } = await authService.signIn({
         email: loginEmail,
         password: loginPassword,
       });
 
-      if (authError) throw authError;
+      if (
+        authError?.name === "AuthApiError" &&
+        authError.message === "Invalid login credentials"
+      ) {
+        setLoginError("Invalid login credentials");
+        return;
+      }
+
+      // Check if email verified
+      const currentUser = await authService.getUser();
+      const isEmailVerified = !!currentUser?.emailConfirmedAt;
+      console.log("Email Verified:", isEmailVerified);
+
+      if (!isEmailVerified) {
+        /// 跳出視窗提示去 email 收信
+        alert("請至您的信箱收信完成驗證");
+        return;
+      }
 
       if (user) {
-        // Get identity ID using RPC (Security Definer)
-        console.log('Fetching identity_id...');
-        const { data: identityId, error: rpcError } = await supabase.rpc('get_identity_id');
+        // Get identity ID
+        console.log("Fetching identity_id...");
+        const identityId = await authService.getIdentityId();
 
-        console.log('Identity ID:', identityId);
-        if (rpcError) {
-          console.error('Error fetching identity:', rpcError);
-          console.log('Redirecting to default:', redirect);
-          router.push(redirect);
-          return;
-        }
+        console.log("Identity ID:", identityId);
 
         // Redirect based on identity_id
         switch (identityId) {
           case 1: // Super Admin
-            router.push('/admin/dashboard');
+            router.push("/admin/dashboard");
             break;
           case 2: // Teacher
-            router.push('/teacher/dashboard');
+            router.push("/teacher/dashboard");
             break;
           case 3: // Student
-            router.push('/student/dashboard');
+            router.push("/student/dashboard");
             break;
           default:
             router.push(redirect);
         }
       }
     } catch (error: any) {
-      setLoginError(error.message || '登入失敗，請稍後再試');
+      console.error("Login Error:", error);
+      setLoginError(error.message || "登入失敗，請稍後再試");
     } finally {
       setLoginLoading(false);
     }
@@ -77,30 +93,27 @@ function LoginContent() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (regPassword !== regConfirm) {
-      setRegError('密碼不一致');
+      setRegError("密碼不一致");
       return;
     }
-    
+
     setRegLoading(true);
     setRegError(null);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error } = await authService.signUp({
         email: regEmail,
         password: regPassword,
-        options: {
-          data: {
-            full_name: regName,
-            teacher_code: regTeacherCode,
-          },
-        },
+        fullName: regName,
+        teacherCode: regTeacherCode,
       });
 
       if (error) throw error;
 
-      alert('註冊成功！請檢查您的電子信箱以進行驗證。');
+      alert("註冊成功！請檢查您的電子信箱以進行驗證。");
     } catch (error: any) {
-      setRegError(error.message || '註冊失敗，請稍後再試');
+      console.error("Register Error:", error);
+      setRegError(error.message || "註冊失敗，請稍後再試");
     } finally {
       setRegLoading(false);
     }
@@ -111,16 +124,43 @@ function LoginContent() {
       <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f3f4] dark:border-b-gray-800 px-6 lg:px-10 py-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-4 text-[#111618] dark:text-white">
           <div className="relative size-8">
-             <Image src="/logo.svg" alt="TimeCarve Logo" fill className="object-contain" />
+            <Image
+              src="/logo.svg"
+              alt="TimeCarve Logo"
+              fill
+              className="object-contain"
+            />
           </div>
-          <h2 className="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">TimeCarve 刻時</h2>
+          <h2 className="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">
+            TimeCarve 刻時
+          </h2>
         </div>
         <div className="flex flex-1 justify-end gap-8">
           <div className="hidden lg:flex items-center gap-9">
-            <Link className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/">首頁</Link>
-            <Link className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/courses">課程列表</Link>
-            <Link className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="/teachers">師資介紹</Link>
-            <Link className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">聯絡我們</Link>
+            <Link
+              className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
+              href="/"
+            >
+              首頁
+            </Link>
+            <Link
+              className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
+              href="/courses"
+            >
+              課程列表
+            </Link>
+            <Link
+              className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
+              href="/teachers"
+            >
+              師資介紹
+            </Link>
+            <Link
+              className="text-[#111618] dark:text-gray-200 text-sm font-medium leading-normal hover:text-primary transition-colors"
+              href="#"
+            >
+              聯絡我們
+            </Link>
           </div>
           <div className="flex gap-4 items-center">
             <button className="lg:hidden text-[#111618] dark:text-white">
@@ -131,15 +171,27 @@ function LoginContent() {
       </header>
       <div className="flex-1 flex items-center justify-center p-4 lg:p-8 bg-gradient-to-br from-background-light to-blue-50/50 dark:from-background-dark dark:to-gray-900">
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-slate-100 dark:border-gray-700/50 overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[640px]">
-          <div className="hidden md:flex flex-col justify-between w-1/2 bg-cover bg-center relative p-12 text-white" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHhqJqS-VgLptXAcCrNziettbp0-KH-cAC-oY7-qxcwZYspiupMFZMYTZmQSJqGYokazzYf31feFqozjVqQF5HyHuvKkZGz64lFzSWHrbd5eSVqsgr25QOyYUyD0QmGQ68tOAX8JZeAFTu72ATHh7m-IF1bgfrMZBT5moP5QMWBSoWQVf4HJYudJAFQCKV6GS2gLZIw7EVw-bFeQ1EAfPoglVwm-NI69IRGWk7vQmqDnv-qp6kGs1pYiMiyOzxQHuaWhsmcU1SjQE")' }}>
+          <div
+            className="hidden md:flex flex-col justify-between w-1/2 bg-cover bg-center relative p-12 text-white"
+            style={{
+              backgroundImage:
+                'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBHhqJqS-VgLptXAcCrNziettbp0-KH-cAC-oY7-qxcwZYspiupMFZMYTZmQSJqGYokazzYf31feFqozjVqQF5HyHuvKkZGz64lFzSWHrbd5eSVqsgr25QOyYUyD0QmGQ68tOAX8JZeAFTu72ATHh7m-IF1bgfrMZBT5moP5QMWBSoWQVf4HJYudJAFQCKV6GS2gLZIw7EVw-bFeQ1EAfPoglVwm-NI69IRGWk7vQmqDnv-qp6kGs1pYiMiyOzxQHuaWhsmcU1SjQE")',
+            }}
+          >
             <div className="absolute inset-0 bg-primary/80 mix-blend-multiply opacity-90 dark:opacity-80"></div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10"></div>
             <div className="relative z-10 flex flex-col h-full">
               <div className="mb-12">
                 <div className="size-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20 shadow-lg">
-                  <span className="material-symbols-outlined text-3xl">school</span>
+                  <span className="material-symbols-outlined text-3xl">
+                    school
+                  </span>
                 </div>
-                <h2 className="text-4xl font-bold mb-4 leading-tight tracking-tight">精選課程<br />成就非凡實力</h2>
+                <h2 className="text-4xl font-bold mb-4 leading-tight tracking-tight">
+                  精選課程
+                  <br />
+                  成就非凡實力
+                </h2>
                 <p className="text-lg text-white/90 leading-relaxed">
                   專為學員量身打造的專業家教課程，在舒適的環境中，開始您的學習之旅。
                 </p>
@@ -147,16 +199,30 @@ function LoginContent() {
               <div className="mt-auto space-y-6">
                 <div className="p-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 shadow-lg">
                   <div className="flex gap-1 text-yellow-400 mb-2">
-                    <span className="material-symbols-outlined text-[20px] fill-current">star</span>
-                    <span className="material-symbols-outlined text-[20px] fill-current">star</span>
-                    <span className="material-symbols-outlined text-[20px] fill-current">star</span>
-                    <span className="material-symbols-outlined text-[20px] fill-current">star</span>
-                    <span className="material-symbols-outlined text-[20px] fill-current">star</span>
+                    <span className="material-symbols-outlined text-[20px] fill-current">
+                      star
+                    </span>
+                    <span className="material-symbols-outlined text-[20px] fill-current">
+                      star
+                    </span>
+                    <span className="material-symbols-outlined text-[20px] fill-current">
+                      star
+                    </span>
+                    <span className="material-symbols-outlined text-[20px] fill-current">
+                      star
+                    </span>
+                    <span className="material-symbols-outlined text-[20px] fill-current">
+                      star
+                    </span>
                   </div>
                   <p className="text-sm italic text-white/95">{`"老師非常有耐心，一對一的教學讓我能真正掌握到學習的訣竅，推薦給所有想精進的同學！"`}</p>
                   <div className="mt-3 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">L</div>
-                    <span className="text-xs font-medium opacity-80">林曉梅 - 112年國考及格</span>
+                    <div className="w-6 h-6 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold">
+                      L
+                    </div>
+                    <span className="text-xs font-medium opacity-80">
+                      林曉梅 - 112年國考及格
+                    </span>
                   </div>
                 </div>
               </div>
@@ -165,13 +231,30 @@ function LoginContent() {
           <div className="w-full md:w-1/2 p-8 lg:p-12 relative flex flex-col justify-center bg-white dark:bg-gray-800">
             <div className="relative w-full max-w-sm mx-auto">
               {/* Note: defaultChecked in React replaces checked attribute */}
-              <input className="peer/login hidden" id="tab-login" name="auth-tabs" type="radio" defaultChecked />
-              <input className="peer/register hidden" id="tab-register" name="auth-tabs" type="radio" />
+              <input
+                className="peer/login hidden"
+                id="tab-login"
+                name="auth-tabs"
+                type="radio"
+                defaultChecked
+              />
+              <input
+                className="peer/register hidden"
+                id="tab-register"
+                name="auth-tabs"
+                type="radio"
+              />
               <div className="flex justify-center mb-8 gap-6 border-b border-slate-100 dark:border-gray-700 relative">
-                <label className="cursor-pointer pb-3 text-lg font-bold text-slate-400 dark:text-gray-500 transition-all hover:text-slate-600 dark:hover:text-gray-300 peer-checked/login:text-primary dark:peer-checked/login:text-primary peer-checked/login:border-b-2 peer-checked/login:border-primary peer-checked/login:-mb-[2px]" htmlFor="tab-login">
-                  學員登入
+                <label
+                  className="cursor-pointer pb-3 text-lg font-bold text-slate-400 dark:text-gray-500 transition-all hover:text-slate-600 dark:hover:text-gray-300 peer-checked/login:text-primary dark:peer-checked/login:text-primary peer-checked/login:border-b-2 peer-checked/login:border-primary peer-checked/login:-mb-[2px]"
+                  htmlFor="tab-login"
+                >
+                  登入
                 </label>
-                <label className="cursor-pointer pb-3 text-lg font-bold text-slate-400 dark:text-gray-500 transition-all hover:text-slate-600 dark:hover:text-gray-300 peer-checked/register:text-primary dark:peer-checked/register:text-primary peer-checked/register:border-b-2 peer-checked/register:border-primary peer-checked/register:-mb-[2px]" htmlFor="tab-register">
+                <label
+                  className="cursor-pointer pb-3 text-lg font-bold text-slate-400 dark:text-gray-500 transition-all hover:text-slate-600 dark:hover:text-gray-300 peer-checked/register:text-primary dark:peer-checked/register:text-primary peer-checked/register:border-b-2 peer-checked/register:border-primary peer-checked/register:-mb-[2px]"
+                  htmlFor="tab-register"
+                >
                   學員註冊
                 </label>
               </div>
@@ -183,65 +266,117 @@ function LoginContent() {
                     </div>
                   )}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="login-email">電子郵件</label>
+                    <label
+                      className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                      htmlFor="login-email"
+                    >
+                      電子郵件
+                    </label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">mail</span>
-                      <input 
-                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                        id="login-email" 
-                        placeholder="name@example.com" 
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                        mail
+                      </span>
+                      <input
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                        id="login-email"
+                        placeholder="name@example.com"
                         type="email"
                         value={loginEmail}
-                        onChange={e => setLoginEmail(e.target.value)}
+                        onChange={(e) => setLoginEmail(e.target.value)}
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
-                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="login-password">密碼</label>
-                      <Link className="text-xs font-medium text-primary hover:text-primary-dark transition-colors" href="/auth/forgot-password">忘記密碼？</Link>
+                      <label
+                        className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                        htmlFor="login-password"
+                      >
+                        密碼
+                      </label>
+                      <Link
+                        className="text-xs font-medium text-primary hover:text-primary-dark transition-colors"
+                        href="/auth/forgot-password"
+                      >
+                        忘記密碼？
+                      </Link>
                     </div>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock</span>
-                      <input 
-                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                        id="login-password" 
-                        placeholder="••••••••" 
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                        lock
+                      </span>
+                      <input
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                        id="login-password"
+                        placeholder="••••••••"
                         type="password"
                         value={loginPassword}
-                        onChange={e => setLoginPassword(e.target.value)}
-                        required 
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
                       />
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <input className="rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary" id="remember" type="checkbox" />
-                    <label className="text-sm text-slate-600 dark:text-gray-400" htmlFor="remember">記住我的登入資訊</label>
+                    <input
+                      className="rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary"
+                      id="remember"
+                      type="checkbox"
+                    />
+                    <label
+                      className="text-sm text-slate-600 dark:text-gray-400"
+                      htmlFor="remember"
+                    >
+                      記住我的登入資訊
+                    </label>
                   </div>
-                  <button 
+                  <button
                     className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={loginLoading}
                   >
-                    <span>{loginLoading ? '登入中...' : '立即登入'}</span>
-                    {!loginLoading && <span className="material-symbols-outlined text-[20px]">arrow_forward</span>}
+                    <span>{loginLoading ? "登入中..." : "立即登入"}</span>
+                    {!loginLoading && (
+                      <span className="material-symbols-outlined text-[20px]">
+                        arrow_forward
+                      </span>
+                    )}
                   </button>
                   <div className="relative my-8">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100 dark:border-gray-700"></div></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-slate-100 dark:border-gray-700"></div>
+                    </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white dark:bg-gray-800 px-2 text-slate-400">或使用以下方式登入</span>
+                      <span className="bg-white dark:bg-gray-800 px-2 text-slate-400">
+                        或使用以下方式登入
+                      </span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
+                    <button
+                      type="button"
+                      className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300"
+                    >
                       <div className="w-5 h-5 relative">
-                        <Image alt="Google" src="https://lh3.googleusercontent.com/aida-public/AB6AXuActoeFgeACj5j868KbNSODvUCcGssflFs-JuMbBA6Z9_5GmYHHSmhbVJvH62yPMnq0maPe7jF-MqhlLYWHLad5nueGKj7b5RrnLEkF93gY6ug2cg6JfbY-jv470WnHyi-S0q8bTwoyF6EkR9bcT5XOzHJOju8jmaCXr_1p0012XkfHDpyAvT0bYqVxIf6eIAU8wX1ljJ8WeMW7Ok5FT81l1Z001OJE6tw8iYd8L-s6Bw3NG05LqqkzFDpAAAVGdPBiqIuxplawacY" fill className="object-contain" />
+                        <Image
+                          alt="Google"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuActoeFgeACj5j868KbNSODvUCcGssflFs-JuMbBA6Z9_5GmYHHSmhbVJvH62yPMnq0maPe7jF-MqhlLYWHLad5nueGKj7b5RrnLEkF93gY6ug2cg6JfbY-jv470WnHyi-S0q8bTwoyF6EkR9bcT5XOzHJOju8jmaCXr_1p0012XkfHDpyAvT0bYqVxIf6eIAU8wX1ljJ8WeMW7Ok5FT81l1Z001OJE6tw8iYd8L-s6Bw3NG05LqqkzFDpAAAVGdPBiqIuxplawacY"
+                          fill
+                          className="object-contain"
+                        />
                       </div>
                       <span className="hidden sm:inline">Google</span>
                     </button>
-                    <button type="button" className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300">
-                       <div className="w-5 h-5 relative">
-                        <Image alt="Facebook" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_03tU9o1bP6_58eLpazAdhvnX6O--ihoUf_LKHLZTp2XzLIWVDIGdofwUaaksnVd7ArVaCNn2yxiPz0wF96A-82vNP498VrC-dl75tomPDJT1R3OxU0IbLZMqgA33j-vBTZFNweQZPhI_rhqeU8GQg3QRAFeNqD6gcYewyAzHEpXqVdKcTspsztXHS8vIklalZCmYnZQcWPBW3Ue6fcTlqBjtv8qISsb8O13_oGDazHJdBBbl45Kt-ryyiEGYAu5_8zYwZtKq0YU" fill className="object-contain" />
+                    <button
+                      type="button"
+                      className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 dark:border-gray-600 rounded-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium text-slate-700 dark:text-gray-300"
+                    >
+                      <div className="w-5 h-5 relative">
+                        <Image
+                          alt="Facebook"
+                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_03tU9o1bP6_58eLpazAdhvnX6O--ihoUf_LKHLZTp2XzLIWVDIGdofwUaaksnVd7ArVaCNn2yxiPz0wF96A-82vNP498VrC-dl75tomPDJT1R3OxU0IbLZMqgA33j-vBTZFNweQZPhI_rhqeU8GQg3QRAFeNqD6gcYewyAzHEpXqVdKcTspsztXHS8vIklalZCmYnZQcWPBW3Ue6fcTlqBjtv8qISsb8O13_oGDazHJdBBbl45Kt-ryyiEGYAu5_8zYwZtKq0YU"
+                          fill
+                          className="object-contain"
+                        />
                       </div>
                       <span className="hidden sm:inline">Facebook</span>
                     </button>
@@ -250,8 +385,13 @@ function LoginContent() {
               </div>
               <div className="hidden peer-checked/register:block animate-[fadeIn_0.3s_ease-out]">
                 <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 rounded-lg text-xs leading-relaxed flex gap-2">
-                  <span className="material-symbols-outlined text-[18px] shrink-0">info</span>
-                  <p>此註冊通道僅供<strong>課程學員</strong>使用。教師帳號請聯繫管理員建立。</p>
+                  <span className="material-symbols-outlined text-[18px] shrink-0">
+                    info
+                  </span>
+                  <p>
+                    此註冊通道僅供<strong>課程學員</strong>
+                    使用。教師帳號請聯繫管理員建立。
+                  </p>
                 </div>
                 <form className="space-y-4" onSubmit={handleRegister}>
                   {regError && (
@@ -260,94 +400,150 @@ function LoginContent() {
                     </div>
                   )}
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-name">姓名</label>
+                    <label
+                      className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                      htmlFor="reg-name"
+                    >
+                      姓名
+                    </label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">person</span>
-                      <input 
-                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                        id="reg-name" 
-                        placeholder="您的真實姓名" 
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                        person
+                      </span>
+                      <input
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                        id="reg-name"
+                        placeholder="您的真實姓名"
                         type="text"
                         value={regName}
-                        onChange={e => setRegName(e.target.value)}
+                        onChange={(e) => setRegName(e.target.value)}
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-email">電子郵件</label>
+                    <label
+                      className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                      htmlFor="reg-email"
+                    >
+                      電子郵件
+                    </label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">mail</span>
-                      <input 
-                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                        id="reg-email" 
-                        placeholder="name@example.com" 
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                        mail
+                      </span>
+                      <input
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                        id="reg-email"
+                        placeholder="name@example.com"
                         type="email"
                         value={regEmail}
-                        onChange={e => setRegEmail(e.target.value)}
+                        onChange={(e) => setRegEmail(e.target.value)}
                         required
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-password">設定密碼</label>
+                      <label
+                        className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                        htmlFor="reg-password"
+                      >
+                        設定密碼
+                      </label>
                       <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock</span>
-                        <input 
-                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                          id="reg-password" 
-                          placeholder="••••••" 
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                          lock
+                        </span>
+                        <input
+                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                          id="reg-password"
+                          placeholder="••••••"
                           type="password"
                           value={regPassword}
-                          onChange={e => setRegPassword(e.target.value)}
+                          onChange={(e) => setRegPassword(e.target.value)}
                           required
                           minLength={8}
                         />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-confirm">確認密碼</label>
+                      <label
+                        className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                        htmlFor="reg-confirm"
+                      >
+                        確認密碼
+                      </label>
                       <div className="relative">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">lock_reset</span>
-                        <input 
-                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                          id="reg-confirm" 
-                          placeholder="••••••" 
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                          lock_reset
+                        </span>
+                        <input
+                          className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                          id="reg-confirm"
+                          placeholder="••••••"
                           type="password"
                           value={regConfirm}
-                          onChange={e => setRegConfirm(e.target.value)}
+                          onChange={(e) => setRegConfirm(e.target.value)}
                           required
                         />
                       </div>
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700 dark:text-gray-300" htmlFor="reg-teacher-code">教師代碼</label>
+                    <label
+                      className="text-sm font-bold text-slate-700 dark:text-gray-300"
+                      htmlFor="reg-teacher-code"
+                    >
+                      教師代碼
+                    </label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">school</span>
-                      <input 
-                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium" 
-                        id="reg-teacher-code" 
-                        placeholder="請輸入教師代碼" 
+                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">
+                        school
+                      </span>
+                      <input
+                        className="block w-full rounded-xl border-slate-200 dark:border-gray-600 bg-slate-50 dark:bg-gray-700/50 pl-10 pr-4 py-3 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-500 focus:border-primary focus:ring-primary focus:bg-white dark:focus:bg-gray-700 transition-all text-sm font-medium"
+                        id="reg-teacher-code"
+                        placeholder="請輸入教師代碼"
                         type="text"
                         value={regTeacherCode}
-                        onChange={e => setRegTeacherCode(e.target.value)}
+                        onChange={(e) => setRegTeacherCode(e.target.value)}
                         required
                       />
                     </div>
                   </div>
                   <div className="flex items-start gap-2 pt-2">
-                    <input className="mt-1 rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary" id="terms" type="checkbox" required />
-                    <label className="text-xs text-slate-600 dark:text-gray-400 leading-tight" htmlFor="terms">
-                      我同意 <a className="text-primary hover:underline" href="/legal/terms">服務條款</a> 與 <a className="text-primary hover:underline" href="/legal/privacy">隱私權政策</a>
+                    <input
+                      className="mt-1 rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary"
+                      id="terms"
+                      type="checkbox"
+                      required
+                    />
+                    <label
+                      className="text-xs text-slate-600 dark:text-gray-400 leading-tight"
+                      htmlFor="terms"
+                    >
+                      我同意{" "}
+                      <a
+                        className="text-primary hover:underline"
+                        href="/legal/terms"
+                      >
+                        服務條款
+                      </a>{" "}
+                      與{" "}
+                      <a
+                        className="text-primary hover:underline"
+                        href="/legal/privacy"
+                      >
+                        隱私權政策
+                      </a>
                     </label>
                   </div>
-                  <button 
+                  <button
                     className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                     disabled={regLoading}
+                    disabled={regLoading}
                   >
-                    {regLoading ? '建立中...' : '建立帳戶'}
+                    {regLoading ? "建立中..." : "建立帳戶"}
                   </button>
                 </form>
               </div>
@@ -355,21 +551,48 @@ function LoginContent() {
           </div>
         </div>
         <footer className="bg-white dark:bg-gray-900 border-t border-[#f0f3f4] dark:border-gray-800 py-10 px-6 lg:px-40 mt-auto hidden">
-           {/* Footer preserved as comment in original source */}
+          {/* Footer preserved as comment in original source */}
         </footer>
       </div>
-       <footer className="bg-white dark:bg-gray-900 border-t border-[#f0f3f4] dark:border-gray-800 py-10 px-6 lg:px-40">
+      <footer className="bg-white dark:bg-gray-900 border-t border-[#f0f3f4] dark:border-gray-800 py-10 px-6 lg:px-40">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="size-6 text-primary">
-              <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path></svg>
+              <svg
+                className="w-full h-full"
+                fill="none"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z"
+                  fill="currentColor"
+                ></path>
+              </svg>
             </div>
-            <p className="text-[#617f89] dark:text-gray-500 text-sm">© 2025 TimeCarve 刻時. All rights reserved.</p>
+            <p className="text-[#617f89] dark:text-gray-500 text-sm">
+              © 2025 TimeCarve 刻時. All rights reserved.
+            </p>
           </div>
           <div className="flex gap-6">
-            <Link className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium" href="/legal/privacy">隱私權政策</Link>
-            <Link className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium" href="/legal/terms">服務條款</Link>
-            <Link className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium" href="#">常見問題</Link>
+            <Link
+              className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium"
+              href="/legal/privacy"
+            >
+              隱私權政策
+            </Link>
+            <Link
+              className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium"
+              href="/legal/terms"
+            >
+              服務條款
+            </Link>
+            <Link
+              className="text-[#617f89] dark:text-gray-500 hover:text-primary transition-colors text-sm font-medium"
+              href="#"
+            >
+              常見問題
+            </Link>
           </div>
         </div>
       </footer>
@@ -379,7 +602,13 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
       <LoginContent />
     </Suspense>
   );

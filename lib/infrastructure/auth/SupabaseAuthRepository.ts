@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { AuthRepository, Session, AuthStateChangeCallback, AuthSubscription, User } from '@/lib/domain/auth/repository';
+import { AuthRepository, Session, AuthStateChangeCallback, AuthSubscription, User, LoginCredentials, RegisterCredentials } from '@/lib/domain/auth/repository';
 
 export class SupabaseAuthRepository implements AuthRepository {
   async getSession(): Promise<Session | null> {
@@ -13,11 +13,32 @@ export class SupabaseAuthRepository implements AuthRepository {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return null;
     
-    return {
-        id: user.id,
-        email: user.email,
-        role: user.role
-    };
+    return this.mapUser(user);
+  }
+
+  async signIn(credentials: LoginCredentials): Promise<{ user: User | null; error: Error | null }> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+
+    if (error) return { user: null, error };
+    return { user: data.user ? this.mapUser(data.user) : null, error: null };
+  }
+
+  async signUp(credentials: RegisterCredentials): Promise<{ error: Error | null }> {
+    const { error } = await supabase.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+      options: {
+        data: {
+          full_name: credentials.fullName,
+          teacher_code: credentials.teacherCode,
+        },
+      },
+    });
+
+    return { error };
   }
 
   async signOut(): Promise<void> {
@@ -34,14 +55,28 @@ export class SupabaseAuthRepository implements AuthRepository {
     };
   }
 
+  async getIdentityId(): Promise<number | null> {
+    const { data, error } = await supabase.rpc('get_identity_id');
+    if (error) {
+      console.error('Error fetching identity:', error);
+      return null;
+    }
+    return data as number;
+  }
+
   private mapSession(supabaseSession: any): Session {
     return {
-      user: {
-        id: supabaseSession.user.id,
-        email: supabaseSession.user.email,
-        role: supabaseSession.user.role,
-      },
+      user: this.mapUser(supabaseSession.user),
       accessToken: supabaseSession.access_token,
+    };
+  }
+
+  private mapUser(supabaseUser: any): User {
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      role: supabaseUser.role,
+      emailConfirmedAt: supabaseUser.email_confirmed_at
     };
   }
 }
