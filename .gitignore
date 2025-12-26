@@ -43,3 +43,4 @@ supabase/functions/*/target/
 # Supabase
 supabase/migrations/
 supabase/seed.sql
+trigger_update.sql
