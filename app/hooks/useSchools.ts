@@ -9,43 +9,34 @@ export function useSchools() {
   const [schools, setSchools] = useState<School[]>([]);
 
   useEffect(() => {
-    // Fetch schools from Supabase
-    // We import supabase from lib to avoid recreating client if possible, or use standard import
-    import("@/lib/supabase").then(({ supabase }) => {
-      supabase
-        .from("schools")
-        .select("code, name")
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Failed to load schools from DB:", error);
-            // Fallback to JSON if DB fails? Or just fail.
-            // Let's try fallback if data is empty
-          }
-
-          if (data && data.length > 0) {
-            const validSchools: School[] = data
-              .filter(s => s.code && s.name)
-              .map(s => ({ code: s.code!, name: s.name }));
-            setSchools(validSchools);
-          } else {
-             // Fallback to JSON if DB is empty or error (optional, but good for local dev without seed)
-             fetch("/schools.json")
-              .then((res) => res.json())
-              .then((jsonData) => {
-                 const schoolMap = new Map();
-                 jsonData.forEach((item: any) => {
-                  const code = item["代碼"];
-                  const name = item["學校名稱"];
-                  if (code && name) {
-                    schoolMap.set(code, { code, name });
-                  }
-                });
-                setSchools(Array.from(schoolMap.values()));
-              })
-              .catch(err => console.error("Failed to load schools.json", err));
+    // 優先使用靜態 JSON 檔案，因為資料庫可能資料不全
+    fetch("/schools.json")
+      .then((res) => res.json())
+      .then((jsonData: any[]) => {
+        // Raw JSON has keys like "學年度", "代碼", "學校名稱", etc.
+        // Also contains duplicates for different years.
+        
+        const uniqueSchools = new Map<string, School>();
+        
+        jsonData.forEach((item) => {
+          const code = item["代碼"];
+          const name = item["學校名稱"];
+          
+          if (code && name) {
+            // Map keys ensures uniqueness by code
+            // If deeper logic needed (e.g. prioritize latest year), could check item["學年度"]
+            if (!uniqueSchools.has(code)) {
+              uniqueSchools.set(code, { code, name });
+            }
           }
         });
-    });
+
+        setSchools(Array.from(uniqueSchools.values()));
+      })
+      .catch((err) => {
+        console.error("Failed to load schools.json", err);
+        setSchools([]);
+      });
   }, []);
 
   return schools;

@@ -8,8 +8,8 @@ import Link from "next/link";
 import { AuthService } from "@/lib/application/auth/AuthService";
 import { SupabaseAuthRepository } from "@/lib/infrastructure/auth/SupabaseAuthRepository";
 import { useModal } from "@/app/components/providers/ModalContext";
-import EducationInputs from "@/app/components/ui/EducationInputs";
-import { useSchools } from "@/app/hooks/useSchools";
+// import EducationInputs from "@/app/components/ui/EducationInputs";
+// import { useSchools } from "@/app/hooks/useSchools";
 
 const authRepository = new SupabaseAuthRepository();
 const authService = new AuthService(authRepository);
@@ -19,7 +19,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
   const { showModal } = useModal();
-  const schools = useSchools();
+  // const schools = useSchools();
 
   // State for Login
   const [loginEmail, setLoginEmail] = useState("");
@@ -33,10 +33,6 @@ function LoginContent() {
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [regTeacherCode, setRegTeacherCode] = useState("");
-  // Education Fields
-  const [regSchool, setRegSchool] = useState("");
-  const [regStatus, setRegStatus] = useState("studying"); // Default
-  const [regDept, setRegDept] = useState("");
 
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
@@ -69,9 +65,10 @@ function LoginContent() {
 
       // Check if account is active
       if (currentUser) {
-        const { data: userInfo, error: userError } = await supabase
-          .from("user_info")
-          .select("is_active")
+        const { data: userInfo, error: userError } = await (
+          supabase.from("user_info" as any) as any
+        )
+          .select("is_active, is_first_login, name")
           .eq("id", currentUser.id)
           .single();
 
@@ -85,6 +82,18 @@ function LoginContent() {
           await authService.signOut();
           setLoginError("帳號已被停用，請聯繫管理員");
           setLoginLoading(false);
+          return;
+        }
+
+        // Check if first login (is_first_login === false means setup not done)
+        if (userInfo && userInfo.is_first_login === false) {
+          router.push("/auth/onboarding");
+          return;
+        }
+
+        // Check if profile incomplete
+        if (userInfo && !userInfo.name) {
+          router.push("/auth/onboarding");
           return;
         }
       }
@@ -143,7 +152,6 @@ function LoginContent() {
 
     try {
       // 1. Check if teacher_code exists (using RPC to bypass RLS)
-
       const { data: teacherExists, error: teacherError } = await supabase.rpc(
         "check_teacher_code_exists",
         { code: regTeacherCode.trim() }
@@ -163,8 +171,9 @@ function LoginContent() {
       }
 
       // 2. Check if email already exists
-      const { data: existingUser, error: existingUserError } = await supabase
-        .from("user_info")
+      const { data: existingUser, error: existingUserError } = await (
+        supabase.from("user_info" as any) as any
+      )
         .select("id")
         .eq("email", regEmail)
         .maybeSingle();
@@ -183,21 +192,11 @@ function LoginContent() {
         return;
       }
 
-      // Find school code if matched
-      const matchedSchool = schools.find((s) => s.name === regSchool);
-      const schoolCode = matchedSchool ? matchedSchool.code : undefined;
-
       const { error } = await authService.signUp({
         email: regEmail,
         password: regPassword,
-        fullName: regName,
+        name: regName,
         teacherCode: regTeacherCode,
-        education: {
-          schoolCode: schoolCode,
-          schoolName: regSchool,
-          statusKey: regStatus,
-          department: regDept,
-        },
       });
 
       if (error) throw error;
@@ -213,10 +212,7 @@ function LoginContent() {
           setRegPassword("");
           setRegConfirm("");
           setRegTeacherCode("");
-          setRegSchool("");
-          setRegDept("");
           setActiveTab("login");
-          // No explicit "setRegError(null)" needed as we're switching away, but good practice if they come back
           setRegError(null);
         },
       });
@@ -615,24 +611,6 @@ function LoginContent() {
                     </div>
                   </div>
 
-                  {/* Education Fields using Shared Component */}
-                  <div className="space-y-4">
-                    <EducationInputs
-                      school={regSchool}
-                      setSchool={setRegSchool}
-                      status={regStatus}
-                      setStatus={setRegStatus}
-                      department={regDept}
-                      setDepartment={setRegDept}
-                      labels={{
-                        school: "就讀學校",
-                        status: "就學狀態",
-                        department: "科系/所",
-                      }}
-                      className="gap-4"
-                    />
-                  </div>
-
                   <div className="space-y-1.5">
                     <label
                       className="text-sm font-bold text-slate-700 dark:text-gray-300"
@@ -655,6 +633,7 @@ function LoginContent() {
                       />
                     </div>
                   </div>
+
                   <div className="flex items-start gap-2 pt-2">
                     <input
                       className="mt-1 rounded border-slate-300 dark:border-gray-600 text-primary focus:ring-primary"

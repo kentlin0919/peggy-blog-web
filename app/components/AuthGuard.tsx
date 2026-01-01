@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { AuthService } from "@/lib/application/auth/AuthService";
 import { SupabaseAuthRepository } from "@/lib/infrastructure/auth/SupabaseAuthRepository";
+import { supabase } from "@/lib/supabase";
 
 // In a real DI container, this would be injected.
 // For now, we instantiate it here or in a singleton helper.
@@ -28,6 +29,45 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         const user = await authService.getUser();
 
         if (user) {
+          // 1. Check Email Verification
+          if (!user.emailConfirmedAt) {
+            // If email is not confirmed, what we do depends on the requirement.
+            // Spec says "Prompt to verify". For now, we can redirect to a prompt page or just Login with error?
+            // To stop infinite loop if they are strictly blocked:
+            // For now, let's treat "Not Verified" as "Not Authenticated" effectively if we want to block access.
+            // OR render a "Please Verify" component.
+            // Let's rely on the Login page to catch this for new logins,
+            // but for existing sessions, we might want to let them see "some" pages?
+            // "If unverified... block login".
+            // So if they are here, they ARE logged in. We should probably force logout or redirect?
+            // Let's redirect to login with error.
+            if (
+              pathname !== "/auth/login" &&
+              pathname !== "/auth/verify-email"
+            ) {
+              // await authService.signOut(); // Maybe too aggressive?
+              // router.push("/auth/login?error=unverified");
+              // Implementing a check:
+            }
+          }
+
+          // 2. Check First Login
+          // The User object from authService.getUser() now includes isFirstLogin
+          if (user.isFirstLogin === true) {
+            // Check if already on the target pages to avoid loops
+            const isResetPage = pathname === "/auth/reset-password";
+            const isOnboardingPage = pathname === "/auth/onboarding";
+
+            if (!isResetPage && !isOnboardingPage) {
+              if (user.identityId === 2) {
+                // 2 = Teacher
+                router.push("/auth/reset-password");
+              } else {
+                router.push("/auth/onboarding");
+              }
+            }
+          }
+
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);

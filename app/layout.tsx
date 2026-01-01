@@ -47,6 +47,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning={true}
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${notoSansTC.variable} antialiased font-display`}
       >
         <ClientProviders>{children}</ClientProviders>

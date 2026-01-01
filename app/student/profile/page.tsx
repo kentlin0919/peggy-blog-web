@@ -121,6 +121,8 @@ export default function StudentProfilePage() {
     if (!userProfile) return;
     setSaving(true);
     try {
+      console.log("Starting profile update...");
+
       // 1. Update basic info
       const updates = {
         id: userProfile.id,
@@ -134,9 +136,14 @@ export default function StudentProfilePage() {
         .update(updates)
         .eq("id", userProfile.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Basic info update error:", error);
+        throw error;
+      }
 
       // 2. Update Education
+      console.log("Updating education with:", { school, status, department });
+
       // Get/Create School ID
       const matchedSchool = schools.find((s) => s.name === school);
       const schoolCode = matchedSchool ? matchedSchool.code : null;
@@ -149,7 +156,11 @@ export default function StudentProfilePage() {
         }
       );
 
-      if (schoolError) throw schoolError;
+      if (schoolError) {
+        console.error("School error:", schoolError);
+        throw schoolError;
+      }
+      console.log("School ID resolved:", schoolId);
 
       // Get Status ID
       const { data: statusData, error: statusError } = await supabase
@@ -158,18 +169,20 @@ export default function StudentProfilePage() {
         .eq("status_key", status)
         .single();
 
-      if (statusError) throw statusError;
+      if (statusError) {
+        console.error("Status lookup error:", statusError);
+        throw statusError;
+      }
+      console.log("Status ID resolved:", statusData.id);
 
       // Upsert Student Education
-      // First check if exists to decide insert or update, but we can try upsert on student_id if unique constraint exists?
-      // actually student_education PK is id, but student_id should be unique? No constraint in SQL shown previously but handled by logic usually.
-      // Let's check if record exists first to get ID for upsert, or just use maybeSingle logic above.
-
       const { data: existingEdu } = await supabase
         .from("student_education")
         .select("id")
         .eq("student_id", userProfile.id)
         .maybeSingle();
+
+      console.log("Existing education record:", existingEdu);
 
       const eduUpdates = {
         student_id: userProfile.id,
@@ -179,13 +192,27 @@ export default function StudentProfilePage() {
         updated_at: new Date().toISOString(),
       };
 
+      let eduResult;
       if (existingEdu) {
-        await supabase
+        console.log("Updating existing education:", existingEdu.id);
+        eduResult = await supabase
           .from("student_education")
           .update(eduUpdates)
-          .eq("id", existingEdu.id);
+          .eq("id", existingEdu.id)
+          .select();
       } else {
-        await supabase.from("student_education").insert(eduUpdates);
+        console.log("Inserting new education...");
+        eduResult = await supabase
+          .from("student_education")
+          .insert(eduUpdates)
+          .select();
+      }
+
+      console.log("Education update result:", eduResult);
+
+      if (eduResult.error) {
+        console.error("Education update error:", eduResult.error);
+        throw eduResult.error;
       }
 
       showModal({
@@ -194,9 +221,10 @@ export default function StudentProfilePage() {
         confirmText: "確定",
       });
     } catch (error: any) {
+      console.error("Detailed update error:", error);
       showModal({
         title: "錯誤",
-        description: "更新失敗: " + error.message,
+        description: "更新失敗: " + error.message + " (Check Console)",
         confirmText: "確定",
       });
     } finally {
