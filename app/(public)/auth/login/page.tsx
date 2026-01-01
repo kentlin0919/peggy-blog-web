@@ -92,7 +92,7 @@ function LoginContent() {
         }
 
         // Check if profile incomplete
-        if (userInfo && !userInfo.name) {
+        if (userInfo && !userInfo.name && userInfo.is_first_login) {
           router.push("/auth/onboarding");
           return;
         }

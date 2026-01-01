@@ -53,9 +53,8 @@ export function Modal({
   const handleConfirm = () => {
     if (onConfirm) {
       onConfirm();
-    } else {
-      onClose();
     }
+    onClose();
   };
 
   const handleCancel = () => {
