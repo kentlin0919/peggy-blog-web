@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -93,7 +93,7 @@ export default function TeachersPublicPage() {
           setProfile(null);
           setError("找不到公開頁面");
         } else {
-          setProfile(result);
+          setProfile(result as PublicTeacherProfile);
           setError(null);
         }
       }
@@ -145,11 +145,12 @@ export default function TeachersPublicPage() {
   const name = profile.name || "未命名老師";
   const title = profile.title || "專業講師";
   const bio =
-    profile.bio ||
-    "這位老師尚未填寫個人簡介，歡迎透過預約諮詢了解更多。";
+    profile.bio || "這位老師尚未填寫個人簡介，歡迎透過預約諮詢了解更多。";
   const avatarUrl =
     profile.avatar_url ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EEF2FF&color=1F2937&size=500`;
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+      name
+    )}&background=EEF2FF&color=1F2937&size=500`;
   const specialties = profile.specialties || [];
   const experienceYears = profile.experience_years ?? 0;
 
@@ -171,19 +172,31 @@ export default function TeachersPublicPage() {
             </h2>
           </div>
           <nav className="hidden md:flex items-center gap-10">
-            <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group" href="#">
+            <a
+              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group"
+              href="#"
+            >
               首頁
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </a>
-            <a className="text-sm font-medium text-primary dark:text-primary transition-colors relative group" href="#">
+            <a
+              className="text-sm font-medium text-primary dark:text-primary transition-colors relative group"
+              href="#"
+            >
               師資介紹
               <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary transition-all"></span>
             </a>
-            <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group" href="#portfolio">
+            <a
+              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group"
+              href="#portfolio"
+            >
               精選作品
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </a>
-            <a className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group" href="#reviews">
+            <a
+              className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors relative group"
+              href="#reviews"
+            >
               學員評價
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
             </a>
@@ -233,7 +246,9 @@ export default function TeachersPublicPage() {
               <div className="md:col-span-7 flex flex-col gap-6 pt-2">
                 <div>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-4">
-                    <span className="material-symbols-outlined text-sm">verified</span>
+                    <span className="material-symbols-outlined text-sm">
+                      verified
+                    </span>
                     Senior Instructor
                   </div>
                   <h1 className="text-4xl sm:text-5xl font-black text-[#111618] dark:text-white tracking-tight mb-2">
@@ -338,14 +353,12 @@ export default function TeachersPublicPage() {
                   {
                     icon: "psychology",
                     title: "幾何解構思維",
-                    text:
-                      "將複雜的形態簡化為幾何邏輯，讓學習過程更具條理。",
+                    text: "將複雜的形態簡化為幾何邏輯，讓學習過程更具條理。",
                   },
                   {
                     icon: "visibility",
                     title: "光影美學訓練",
-                    text:
-                      "強調從不同角度觀察光影變化，培養精準的美學判斷。",
+                    text: "強調從不同角度觀察光影變化，培養精準的美學判斷。",
                   },
                   {
                     icon: "handshake",
@@ -401,7 +414,10 @@ export default function TeachersPublicPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {portfolioItems.map((item) => (
-                <div key={item.title} className="group cursor-pointer flex flex-col gap-4">
+                <div
+                  key={item.title}
+                  className="group cursor-pointer flex flex-col gap-4"
+                >
                   <div className="relative overflow-hidden rounded-2xl aspect-square bg-gray-100 dark:bg-gray-800 shadow-sm group-hover:shadow-lg transition-all duration-500">
                     <div
                       className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-110"
@@ -458,7 +474,10 @@ export default function TeachersPublicPage() {
                     </div>
                     <div className="ml-auto flex text-yellow-400 text-sm">
                       {Array.from({ length: 5 }).map((_, index) => (
-                        <span key={index} className="material-symbols-outlined filled">
+                        <span
+                          key={index}
+                          className="material-symbols-outlined filled"
+                        >
                           star
                         </span>
                       ))}
@@ -504,16 +523,28 @@ export default function TeachersPublicPage() {
                   <h3 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-widest">
                     快速連結
                   </h3>
-                  <a className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" href="#">
+                  <a
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                    href="#"
+                  >
                     關於我們
                   </a>
-                  <a className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" href="#">
+                  <a
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                    href="#"
+                  >
                     師資介紹
                   </a>
-                  <a className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" href="#portfolio">
+                  <a
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                    href="#portfolio"
+                  >
                     精選作品
                   </a>
-                  <a className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors" href="#">
+                  <a
+                    className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
+                    href="#"
+                  >
                     聯絡我們
                   </a>
                 </div>
@@ -522,15 +553,21 @@ export default function TeachersPublicPage() {
                     聯絡方式
                   </h3>
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="material-symbols-outlined text-base">mail</span>
+                    <span className="material-symbols-outlined text-base">
+                      mail
+                    </span>
                     contact@timecarve.com
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="material-symbols-outlined text-base">call</span>
+                    <span className="material-symbols-outlined text-base">
+                      call
+                    </span>
                     02-1234-5678
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="material-symbols-outlined text-base">location_on</span>
+                    <span className="material-symbols-outlined text-base">
+                      location_on
+                    </span>
                     台北市信義區
                   </div>
                 </div>
