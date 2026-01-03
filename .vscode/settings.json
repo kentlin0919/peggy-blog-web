@@ -13,7 +13,9 @@
     "regclass",
     "Supabase",
     "teacherinfo",
+    "termdock",
     "userinfo",
+    "vercel",
     "xmloption"
   ]
 }

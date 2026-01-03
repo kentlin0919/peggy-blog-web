@@ -1,0 +1,314 @@
+"use client";
+
+import { useState } from "react";
+import { TeacherProfile, TeacherEducation } from "@/lib/domain/teacher/entity";
+import Image from "next/image";
+
+interface Props {
+  initialProfile: TeacherProfile;
+  onSave: (profile: Partial<TeacherProfile>) => Promise<void>;
+  onAddEducation: (
+    edu: Omit<TeacherEducation, "id" | "teacherId">
+  ) => Promise<TeacherEducation | null>;
+  onDeleteEducation: (id: string) => Promise<void>;
+}
+
+export default function TeacherProfileForm({
+  initialProfile,
+  onSave,
+  onAddEducation,
+  onDeleteEducation,
+}: Props) {
+  const [profile, setProfile] = useState<TeacherProfile>(initialProfile);
+  const [saving, setSaving] = useState(false);
+  const [newSpecialty, setNewSpecialty] = useState("");
+
+  // Handler helpers
+  const handleChange = (field: keyof TeacherProfile, value: any) => {
+    setProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(profile);
+      alert("儲存成功！");
+    } catch (e) {
+      console.error(e);
+      alert("儲存失敗，請重試。");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddTag = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && newSpecialty.trim()) {
+      e.preventDefault();
+      if (!profile.specialties.includes(newSpecialty.trim())) {
+        handleChange("specialties", [
+          ...profile.specialties,
+          newSpecialty.trim(),
+        ]);
+      }
+      setNewSpecialty("");
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    handleChange(
+      "specialties",
+      profile.specialties.filter((t) => t !== tag)
+    );
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto pb-20">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+          個人檔案設定
+        </h1>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-bold shadow-lg shadow-primary/30 transition-all disabled:opacity-50"
+        >
+          {saving ? "儲存中..." : "儲存變更"}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Left Column: Avatar & Public Status */}
+        <div className="md:col-span-1 space-y-6">
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark flex flex-col items-center text-center">
+            <div className="relative size-32 rounded-full overflow-hidden mb-4 border-4 border-slate-100 dark:border-slate-700">
+              <Image
+                src={
+                  profile.avatarUrl ||
+                  `https://ui-avatars.com/api/?name=${profile.name}&background=random`
+                }
+                alt={profile.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <button className="text-sm text-primary font-bold hover:underline mb-2">
+              更換大頭貼
+            </button>
+            <p className="text-xs text-text-sub">
+              建議尺寸: 500x500px, JPG/PNG
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4">
+              顯示狀態
+            </h3>
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                公開個人檔案
+              </span>
+              <div className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={profile.isPublic}
+                  onChange={(e) => handleChange("isPublic", e.target.checked)}
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+              </div>
+            </label>
+            <p className="text-xs text-text-sub mt-3">
+              開啟後，學生將能在「找老師」頁面搜尋到您的檔案。
+            </p>
+          </div>
+        </div>
+
+        {/* Right Column: Key Info */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Basic Information */}
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-6 border-b border-border-light dark:border-border-dark pb-3">
+              基本資訊
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  顯示名稱 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={profile.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  職稱 / 頭銜
+                </label>
+                <input
+                  type="text"
+                  value={profile.title || ""}
+                  onChange={(e) => handleChange("title", e.target.value)}
+                  placeholder="例如：資深美語教師"
+                  className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  Email (無法更改)
+                </label>
+                <input
+                  type="text"
+                  value={profile.email}
+                  disabled
+                  className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-100 dark:bg-slate-900 text-text-sub cursor-not-allowed"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  聯絡電話
+                </label>
+                <input
+                  type="text"
+                  value={profile.phone || ""}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Details */}
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-6 border-b border-border-light dark:border-border-dark pb-3">
+              專業介紹
+            </h3>
+            <div className="space-y-6">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  個人簡介 (Bio)
+                </label>
+                <textarea
+                  rows={5}
+                  value={profile.bio || ""}
+                  onChange={(e) => handleChange("bio", e.target.value)}
+                  placeholder="請介紹您的教學理念、經歷以及風格..."
+                  className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                    教學年資 (年)
+                  </label>
+                  <input
+                    type="number"
+                    value={profile.experienceYears || 0}
+                    onChange={(e) =>
+                      handleChange("experienceYears", Number(e.target.value))
+                    }
+                    className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                    基礎時薪 (參考用)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-text-sub">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      value={profile.basePrice || 0}
+                      onChange={(e) =>
+                        handleChange("basePrice", Number(e.target.value))
+                      }
+                      className="w-full pl-8 pr-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  專長標籤 (Enter 新增)
+                </label>
+                <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 min-h-[50px]">
+                  {profile.specialties.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-2.5 py-1 rounded bg-primary/10 text-primary text-sm"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    placeholder={
+                      profile.specialties.length === 0 ? "輸入專長..." : ""
+                    }
+                    className="bg-transparent outline-none flex-1 min-w-[100px] text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Education - Read Only for MVP or Simple List for now */}
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-6 border-b border-border-light dark:border-border-dark pb-3 flex justify-between items-center">
+              <span>學歷背景</span>
+              {/* Add Education Button - can implement modal later */}
+              {/* <button className="text-xs text-primary font-bold">+ 新增學歷</button> */}
+            </h3>
+
+            {profile.educations.length === 0 ? (
+              <p className="text-text-sub text-sm">尚無學歷資料。</p>
+            ) : (
+              <div className="space-y-4">
+                {profile.educations.map((edu) => (
+                  <div
+                    key={edu.id}
+                    className="flex justify-between items-start p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-white">
+                        {edu.schoolName}
+                      </h4>
+                      <p className="text-sm text-text-sub">
+                        {edu.department} {edu.degree}
+                      </p>
+                      <p className="text-xs text-text-sub mt-1">
+                        {edu.startYear} - {edu.endYear || "迄今"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onDeleteEducation(edu.id)}
+                      className="text-slate-400 hover:text-red-500 p-1"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        delete
+                      </span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

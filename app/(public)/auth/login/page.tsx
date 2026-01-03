@@ -68,7 +68,7 @@ function LoginContent() {
         const { data: userInfo, error: userError } = await (
           supabase.from("user_info" as any) as any
         )
-          .select("is_active, is_first_login, name")
+          .select("is_active, is_first_login, name, identity_id")
           .eq("id", currentUser.id)
           .single();
 
@@ -85,16 +85,31 @@ function LoginContent() {
           return;
         }
 
-        // Check if first login (is_first_login === false means setup not done)
-        if (userInfo && userInfo.is_first_login === false) {
-          router.push("/auth/onboarding");
-          return;
-        }
+        const isAdmin = userInfo?.identity_id === 1;
 
-        // Check if profile incomplete
-        if (userInfo && !userInfo.name && userInfo.is_first_login) {
-          router.push("/auth/onboarding");
-          return;
+        if (!isAdmin) {
+          // Check if first login (is_first_login === false means setup not done)
+          // For Teachers (identity_id === 2), force password change
+          if (
+            userInfo &&
+            userInfo.is_first_login === false &&
+            userInfo.identity_id === 2
+          ) {
+            router.push("/auth/reset-password?type=first_login");
+            return;
+          }
+
+          // For Students or others, go to Onboarding
+          if (userInfo && userInfo.is_first_login === false) {
+            router.push("/auth/onboarding");
+            return;
+          }
+
+          // Check if profile incomplete
+          if (userInfo && !userInfo.name && userInfo.is_first_login === false) {
+            router.push("/auth/onboarding");
+            return;
+          }
         }
       }
 

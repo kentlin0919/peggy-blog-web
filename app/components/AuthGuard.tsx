@@ -54,7 +54,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
           }
 
           // 2. Check First Login
-          if (user.isFirstLogin === true) {
+          if (user.isFirstLogin === false) {
             const isResetPage = pathname === "/auth/reset-password";
             const isOnboardingPage = pathname === "/auth/onboarding";
 

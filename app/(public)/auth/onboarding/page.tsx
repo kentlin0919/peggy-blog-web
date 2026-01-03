@@ -59,6 +59,20 @@ export default function OnboardingPage() {
 
         if (userInfo.identity_id) {
           setIdentityId(userInfo.identity_id);
+          if (userInfo.identity_id === 1) {
+            const { error: adminUpdateError } = await supabase
+              .from("user_info")
+              .update({ is_first_login: true } as any)
+              .eq("id", user.id);
+            if (adminUpdateError) {
+              console.error(
+                "Error updating first login for admin:",
+                adminUpdateError
+              );
+            }
+            router.push("/admin/dashboard");
+            return;
+          }
 
           // Fetch logic based on role
           if (userInfo.identity_id === 3) {
@@ -188,7 +202,6 @@ export default function OnboardingPage() {
         .from("user_info")
         .update({
           name: fullName,
-          is_first_login: true,
         })
         .eq("id", user.id);
 
@@ -294,7 +307,7 @@ export default function OnboardingPage() {
       // 6. Update is_first_login to false
       const { error: isFirstLoginUpdateError } = await supabase
         .from("user_info")
-        .update({ is_first_login: false } as any)
+        .update({ is_first_login: true } as any)
         .eq("id", user.id);
 
       if (isFirstLoginUpdateError) {

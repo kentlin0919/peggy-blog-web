@@ -1,0 +1,9 @@
+import { Course } from "./entity";
+
+export interface CourseRepository {
+  getTeacherCourses(teacherId: string): Promise<Course[]>;
+  getCourse(id: string): Promise<Course | null>;
+  createCourse(course: Omit<Course, "id" | "createdAt" | "updatedAt">): Promise<Course | null>;
+  updateCourse(id: string, course: Partial<Course>): Promise<Course | null>;
+  deleteCourse(id: string): Promise<void>;
+}

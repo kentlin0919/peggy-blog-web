@@ -123,7 +123,7 @@ export class SupabaseAuthRepository implements AuthRepository {
       name: userInfo?.name || userInfo?.full_name || supabaseUser.user_metadata?.name || '',
       identityId: userInfo?.identity_id,
       isActive: userInfo?.is_active ?? true,
-      isFirstLogin: userInfo?.is_first_login ?? true, // Default to true (Setup Not Done)
+      isFirstLogin: userInfo?.is_first_login ?? false, // Default to false (Setup Not Done)
       avatarUrl: userInfo?.avatar_url,
       phone: userInfo?.phone,
       disabledAt: userInfo?.disabled_at,

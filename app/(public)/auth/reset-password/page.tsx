@@ -13,14 +13,33 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
 
   useEffect(() => {
+    // Get query params
+    const params = new URLSearchParams(window.location.search);
+    const paramType = params.get("type");
+    setType(paramType);
+
+    // active session check
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // If purely reset password flow via email link, usually handled by #fragment
+      // If first login flow, we MUST have a session
+      if (paramType === "first_login" && !session) {
+        router.push("/auth/login");
+      }
+    };
+    checkSession();
+
     // Listen for auth state changes for robustness
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "PASSWORD_RECOVERY") {
           // User has clicked the reset link and is now authenticated for recovery
-          // You might want to show a specific message or just allow the form
           console.log("Password recovery session active");
         }
       }
@@ -29,7 +48,7 @@ export default function ResetPasswordPage() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,10 +68,41 @@ export default function ResetPasswordPage() {
 
       if (error) throw error;
 
-      setMessage("密碼重設成功！即將跳轉至登入頁面...");
+      setMessage("密碼重設成功！即將跳轉...");
+
+      // Determine redirect path dynamically
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      let redirectPath = "/auth/login";
+
+      if (user) {
+        // Check user_info to see if they need onboarding
+        const { data: userInfo, error: userError } = await (
+          supabase.from("user_info" as any) as any
+        )
+          .select("is_first_login, identity_id")
+          .eq("id", user.id)
+          .single();
+
+        if (!userError && userInfo) {
+          // If Teacher and First Login is false (not done), go to Onboarding
+          // This prevents the Login page from kicking them back to Reset Password
+          if (userInfo.is_first_login === false) {
+            redirectPath = "/auth/onboarding";
+          }
+        }
+      }
+
+      // If explicit type is present, it takes precedence or confirms it
+      if (type === "first_login") {
+        redirectPath = "/auth/onboarding";
+      }
+
       setTimeout(() => {
-        router.push("/auth/onboarding");
-      }, 2000);
+        router.push(redirectPath);
+      }, 1500);
     } catch (err: any) {
       setError(err.message || "重設失敗，請稍後再試");
     } finally {
