@@ -1,7 +1,13 @@
 "use client";
 
 import { ModalProvider } from "./ModalContext";
+import GlobalOnboardingGuard from "../GlobalOnboardingGuard";
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
-  return <ModalProvider>{children}</ModalProvider>;
+  return (
+    <ModalProvider>
+      <GlobalOnboardingGuard />
+      {children}
+    </ModalProvider>
+  );
 }

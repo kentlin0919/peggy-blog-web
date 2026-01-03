@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TeacherProfile, TeacherEducation } from "@/lib/domain/teacher/entity";
 import Image from "next/image";
+import { updateUserAvatar } from "@/lib/avatar";
 
 interface Props {
   initialProfile: TeacherProfile;
@@ -22,7 +23,9 @@ export default function TeacherProfileForm({
   const [profile, setProfile] = useState<TeacherProfile>(initialProfile);
   const [saving, setSaving] = useState(false);
   const [newSpecialty, setNewSpecialty] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [publicUrl, setPublicUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -83,6 +86,30 @@ export default function TeacherProfileForm({
     }
   };
 
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    const file = event.target.files[0];
+    setUploadingAvatar(true);
+    try {
+      const publicAvatarUrl = await updateUserAvatar({
+        userId: profile.id,
+        file,
+      });
+      setProfile((prev) => ({ ...prev, avatarUrl: publicAvatarUrl }));
+      await onSave({ avatarUrl: publicAvatarUrl });
+      alert("頭像更新成功！");
+    } catch (error: any) {
+      console.error(error);
+      alert(`頭像上傳失敗：${error.message || "請稍後再試"}`);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <div className="flex justify-between items-center mb-8">
@@ -113,8 +140,20 @@ export default function TeacherProfileForm({
                 className="object-cover"
               />
             </div>
-            <button className="text-sm text-primary font-bold hover:underline mb-2">
-              更換大頭貼
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+              className="text-sm text-primary font-bold hover:underline mb-2 disabled:opacity-50"
+            >
+              {uploadingAvatar ? "上傳中..." : "更換大頭貼"}
             </button>
             <p className="text-xs text-text-sub">
               建議尺寸: 500x500px, JPG/PNG

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { updateUserAvatar } from "@/lib/avatar";
 import { useRouter } from "next/navigation";
 import { useModal } from "@/app/components/providers/ModalContext";
 import EducationInputs from "@/app/components/ui/EducationInputs";
@@ -271,33 +272,13 @@ export default function StudentProfilePage() {
       return;
     }
     const file = event.target.files[0];
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${userProfile?.id}-${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
     setUploadingAvatar(true);
     try {
-      // Upload
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get Public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-      // Update user_info
       if (userProfile) {
-        const { error: updateError } = await supabase
-          .from("user_info")
-          .update({ avatar_url: publicUrl })
-          .eq("id", userProfile.id);
-
-        if (updateError) throw updateError;
-
+        const publicUrl = await updateUserAvatar({
+          userId: userProfile.id,
+          file,
+        });
         setAvatarPreview(publicUrl);
         showModal({
           title: "成功",

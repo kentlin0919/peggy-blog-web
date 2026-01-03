@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -56,7 +56,7 @@ const reviewItems = [
   },
 ];
 
-export default function TeachersPublicPage() {
+function TeachersContent() {
   const searchParams = useSearchParams();
   const teacherCode = useMemo(
     () => searchParams.get("teacher_code")?.trim() || "",
@@ -580,5 +580,24 @@ export default function TeachersPublicPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function TeachersPublicPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background-light dark:bg-background-dark text-[#111618] dark:text-[#f0f3f4]">
+          <div className="max-w-md rounded-2xl border border-border-light dark:border-border-dark bg-white dark:bg-[#15262d] p-8 text-center shadow-soft">
+            <h1 className="text-xl font-bold">載入中</h1>
+            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              正在初始化頁面...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <TeachersContent />
+    </Suspense>
   );
 }
