@@ -117,6 +117,44 @@ export default function AdminSidebar({
             <span className="font-medium text-sm">課程管理</span>
           </Link>
           <Link
+            href="/admin/course-types"
+            onClick={() => onClose()}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg group transition-colors ${
+              isActive("/admin/course-types")
+                ? "bg-sky-50 dark:bg-sky-500/20 text-sky-500"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined text-xl ${
+                !isActive("/admin/course-types") &&
+                "group-hover:text-sky-500 transition-colors"
+              }`}
+            >
+              category
+            </span>
+            <span className="font-medium text-sm">課程類型管理</span>
+          </Link>
+          <Link
+            href="/admin/tags"
+            onClick={() => onClose()}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg group transition-colors ${
+              isActive("/admin/tags")
+                ? "bg-sky-50 dark:bg-sky-500/20 text-sky-500"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined text-xl ${
+                !isActive("/admin/tags") &&
+                "group-hover:text-sky-500 transition-colors"
+              }`}
+            >
+              label
+            </span>
+            <span className="font-medium text-sm">標籤管理</span>
+          </Link>
+          <Link
             href="/admin/students"
             onClick={() => onClose()}
             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg group transition-colors ${

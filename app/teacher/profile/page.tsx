@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { SupabaseTeacherRepository } from "@/lib/infrastructure/teacher/SupabaseTeacherRepository";
 import { TeacherProfile } from "@/lib/domain/teacher/entity";
 import TeacherProfileForm from "./TeacherProfileForm";
@@ -13,7 +13,7 @@ export default function TeacherProfileSettingsPage() {
 
   useEffect(() => {
     async function loadData() {
-      const supabase = createClient();
+      // const supabase = createClient(); // Use global instance imported above
       const {
         data: { user },
       } = await supabase.auth.getUser();

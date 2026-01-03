@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Course, CourseSection } from "@/lib/domain/course/entity";
 import { useModal } from "@/app/components/providers/ModalContext";
+import { supabase } from "@/lib/supabase"; // Import supabase
 
 interface CourseDetailFormProps {
   initialData: Partial<Course>;
@@ -33,6 +34,12 @@ export default function CourseDetailForm({
 
   const { showModal } = useModal();
   const [currentTagInput, setCurrentTagInput] = useState("");
+  const [courseTypes, setCourseTypes] = useState<
+    { name: string; label_zh: string }[]
+  >([]);
+  const [globalTags, setGlobalTags] = useState<{ id: string; name: string }[]>(
+    []
+  );
 
   useEffect(() => {
     // If initialData changes significantly (e.g. switching courses), reset form
@@ -40,22 +47,88 @@ export default function CourseDetailForm({
     setForm((prev) => ({ ...prev, ...initialData }));
   }, [initialData]);
 
+  // Fetch course types
+  useEffect(() => {
+    const fetchTypes = async () => {
+      const { data } = await supabase
+        .from("class_type")
+        .select("name, label_zh")
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+
+      if (data) {
+        setCourseTypes(data);
+        if (!initialData.courseType && data.length > 0) {
+          setForm((prev) => ({ ...prev, courseType: data[0].name }));
+        }
+      }
+    };
+    fetchTypes();
+  }, [initialData.courseType]); // Depend on initialData.courseType to re-evaluate if needed
+  // Fetch global tags
+  useEffect(() => {
+    const fetchGlobalTags = async () => {
+      const { data } = await supabase
+        .from("tags")
+        .select("id, name")
+        .is("teacher_id", null) // Select only global tags
+        .order("name", { ascending: true });
+
+      if (data) {
+        setGlobalTags(data);
+      }
+    };
+    fetchGlobalTags();
+  }, []);
+
   const handleChange = (field: keyof Course, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && currentTagInput.trim()) {
+  const handleStatusChange = (status: "draft" | "active") => {
+    setForm((prev) => ({
+      ...prev,
+      status,
+      isActive: status === "active",
+    }));
+  };
+
+  const handleAddTag = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.MouseEvent<HTMLButtonElement>
+      | null,
+    tagTextToAdd?: string
+  ) => {
+    // If it's a keyboard event, only proceed if Key is Enter
+    if (e && "key" in e && e.key !== "Enter") {
+      return;
+    }
+
+    // Prevent default form submission
+    if (e) {
       e.preventDefault();
-      const newTag = { icon: "label", text: currentTagInput.trim() };
-      // Prevent duplicates
-      if (!form.tags?.some((t) => t.text === newTag.text)) {
+    }
+
+    // Determine the text to add: either passed directly or from input state
+    const textToUse = tagTextToAdd ? tagTextToAdd : currentTagInput.trim();
+
+    if (textToUse) {
+      const newTag = { icon: "label", text: textToUse };
+
+      // Prevent adding duplicates
+      const isDuplicate = form.tags?.some((t) => t.text === newTag.text);
+
+      if (!isDuplicate) {
         setForm((prev) => ({
           ...prev,
           tags: [...(prev.tags || []), newTag],
         }));
       }
-      setCurrentTagInput("");
+      // Only clear input if we used the input value
+      if (!tagTextToAdd) {
+        setCurrentTagInput("");
+      }
     }
   };
 
@@ -85,7 +158,6 @@ export default function CourseDetailForm({
       id: crypto.randomUUID(),
       title: "",
       content: "",
-      duration: 10,
     };
     setForm((prev) => ({
       ...prev,
@@ -185,6 +257,32 @@ export default function CourseDetailForm({
                 </div>
                 <div className="col-span-1">
                   <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
+                    課程類型 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.courseType || ""}
+                    onChange={(e) => handleChange("courseType", e.target.value)}
+                    className="block w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none sm:text-sm py-2.5 px-3 font-bold text-lg"
+                  >
+                    <option value="" disabled>
+                      請選擇類型
+                    </option>
+                    {courseTypes.map((type) => (
+                      <option key={type.name} value={type.name}>
+                        {type.label_zh}
+                      </option>
+                    ))}
+                    {courseTypes.length === 0 && (
+                      // Fallback if DB is empty or fetch failed
+                      <>
+                        <option value="1-on-1">一對一教學</option>
+                        <option value="group">團體課程</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                <div className="col-span-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
                     單價格設定 (TWD) <span className="text-red-500">*</span>
                   </label>
                   <div className="relative flex items-center w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
@@ -192,24 +290,20 @@ export default function CourseDetailForm({
                       NT$
                     </span>
                     <input
-                      type="number"
-                      value={form.price}
-                      onChange={(e) =>
-                        handleChange("price", Number(e.target.value))
-                      }
+                      type="text"
+                      inputMode="numeric"
+                      value={form.price || ""}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        handleChange("price", val ? Number(val) : 0);
+                      }}
                       placeholder="0"
-                      className="flex-1 py-2.5 px-2 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-bold text-lg"
+                      className="flex-1 py-2.5 px-2 bg-transparent text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none font-bold text-lg sm:text-sm"
                     />
-                    <div className="pr-2">
-                      <select
-                        value={form.priceUnit}
-                        onChange={(e) =>
-                          handleChange("priceUnit", e.target.value)
-                        }
-                        className="bg-transparent text-slate-700 dark:text-gray-300 text-sm border-l border-border-light dark:border-border-dark py-2.5 pl-3 pr-8 focus:ring-0 cursor-pointer outline-none h-full hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                      >
-                        <option value="每小時">每小時</option>
-                      </select>
+                    <div className="pr-4 border-l border-border-light dark:border-border-dark py-2.5 pl-4">
+                      <span className="text-slate-700 dark:text-gray-300 text-sm font-medium">
+                        每小時
+                      </span>
                     </div>
                   </div>
                   <p className="text-xs text-text-sub mt-1.5">
@@ -242,18 +336,61 @@ export default function CourseDetailForm({
                 </h3>
               </div>
               <div className="p-6">
+                {/* Global Tags Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
+                    選擇現有標籤
+                  </label>
+                  {globalTags.length === 0 && (
+                    <p className="text-sm text-text-sub italic">
+                      目前沒有全域標籤可供選擇。
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {globalTags.map((tag) => (
+                      <button
+                        type="button"
+                        key={tag.id}
+                        onClick={() => handleAddTag(null, tag.name)} // Pass tag name directly
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                          ${
+                            form.tags?.some((t) => t.text === tag.name)
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-primary/20 hover:text-primary dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-primary/50"
+                          } transition-colors`}
+                        disabled={form.tags?.some((t) => t.text === tag.name)}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Manual Tag Input */}
                 <div className="mb-3">
                   <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
-                    新增標籤 (按 Enter 新增)
+                    新增自訂標籤 (按 Enter 或點擊按鈕新增)
                   </label>
-                  <input
-                    type="text"
-                    value={currentTagInput}
-                    onChange={(e) => setCurrentTagInput(e.target.value)}
-                    onKeyDown={handleAddTag}
-                    placeholder="例如：牙醫國考, 備審資料"
-                    className="block w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none sm:text-sm py-2.5 px-3"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={currentTagInput}
+                      onChange={(e) => setCurrentTagInput(e.target.value)}
+                      onKeyDown={(e) => handleAddTag(e)} // Existing handler for keyboard
+                      placeholder="例如：牙醫國考, 備審資料"
+                      className="block flex-1 rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none sm:text-sm py-2.5 px-3"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => handleAddTag(e)} // Existing handler for button click
+                      disabled={!currentTagInput.trim()}
+                      className="flex items-center justify-center p-2.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        add
+                      </span>
+                    </button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {form.tags?.map((tag) => (
@@ -345,7 +482,7 @@ export default function CourseDetailForm({
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1">
                       <div>
                         <label className="text-xs font-semibold text-text-sub mb-1 block">
                           階段內容
@@ -361,24 +498,6 @@ export default function CourseDetailForm({
                             )
                           }
                           placeholder="例如：包含講義導讀與工具介紹"
-                          className="block w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none sm:text-sm py-2.5 px-3"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-text-sub mb-1 block">
-                          時長 (分)
-                        </label>
-                        <input
-                          type="number"
-                          value={section.duration || ""}
-                          onChange={(e) =>
-                            handleUpdateSection(
-                              section.id,
-                              "duration",
-                              Number(e.target.value)
-                            )
-                          }
-                          placeholder="60"
                           className="block w-full rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none sm:text-sm py-2.5 px-3"
                         />
                       </div>
@@ -483,7 +602,7 @@ export default function CourseDetailForm({
                         name="status"
                         value="draft"
                         checked={form.status === "draft"}
-                        onChange={() => handleChange("status", "draft")}
+                        onChange={() => handleStatusChange("draft")}
                         className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                       />
                       <div className="ml-3">
@@ -501,7 +620,7 @@ export default function CourseDetailForm({
                         name="status"
                         value="active"
                         checked={form.status === "active"}
-                        onChange={() => handleChange("status", "active")}
+                        onChange={() => handleStatusChange("active")}
                         className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                       />
                       <div className="ml-3">

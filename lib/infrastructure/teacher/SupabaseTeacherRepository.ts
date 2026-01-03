@@ -1,9 +1,9 @@
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { TeacherRepository } from "@/lib/domain/teacher/repository";
 import { TeacherProfile, TeacherEducation } from "@/lib/domain/teacher/entity";
 
 export class SupabaseTeacherRepository implements TeacherRepository {
-  private supabase = createClient();
+  private supabase = supabase;
 
   async getProfile(userId: string): Promise<TeacherProfile | null> {
     try {

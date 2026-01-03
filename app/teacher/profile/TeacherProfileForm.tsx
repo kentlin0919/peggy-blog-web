@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TeacherProfile, TeacherEducation } from "@/lib/domain/teacher/entity";
 import Image from "next/image";
 
@@ -22,6 +22,17 @@ export default function TeacherProfileForm({
   const [profile, setProfile] = useState<TeacherProfile>(initialProfile);
   const [saving, setSaving] = useState(false);
   const [newSpecialty, setNewSpecialty] = useState("");
+  const [publicUrl, setPublicUrl] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const origin = window.location.origin;
+    setPublicUrl(
+      `${origin}/teachers?teacher_code=${encodeURIComponent(
+        profile.teacherCode
+      )}`
+    );
+  }, [profile.teacherCode]);
 
   // Handler helpers
   const handleChange = (field: keyof TeacherProfile, value: any) => {
@@ -61,6 +72,17 @@ export default function TeacherProfileForm({
     );
   };
 
+  const handleCopyUrl = async () => {
+    if (!publicUrl) return;
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      alert("公開個人頁網址已複製！");
+    } catch (error) {
+      console.error(error);
+      alert("複製失敗，請手動複製。");
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto pb-20">
       <div className="flex justify-between items-center mb-8">
@@ -96,6 +118,30 @@ export default function TeacherProfileForm({
             </button>
             <p className="text-xs text-text-sub">
               建議尺寸: 500x500px, JPG/PNG
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4">
+              公開個人頁網址
+            </h3>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={publicUrl}
+                readOnly
+                className="w-full px-3 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 text-xs text-slate-600 dark:text-gray-300 outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleCopyUrl}
+                className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dark transition-colors"
+              >
+                複製
+              </button>
+            </div>
+            <p className="text-xs text-text-sub mt-3">
+              分享給學生時使用，需先開啟公開個人檔案。
             </p>
           </div>
 

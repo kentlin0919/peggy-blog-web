@@ -479,6 +479,89 @@ export type Database = {
         }
         Relationships: []
       }
+      tags: {
+        Row: {
+          id: string
+          teacher_id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          teacher_id: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          teacher_id?: string
+          name?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_info"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      course_tags: {
+        Row: {
+          course_id: string
+          tag_id: string
+        }
+        Insert: {
+          course_id: string
+          tag_id: string
+        }
+        Update: {
+          course_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_tags_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      class_type: {
+        Row: {
+          id: string
+          name: string
+          label_zh: string
+          is_active: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          label_zh: string
+          is_active?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          label_zh?: string
+          is_active?: boolean | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,0 +1,268 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+
+interface CourseType {
+  id: string;
+  name: string;
+  label_zh: string;
+  is_active: boolean | null;
+  created_at: string | null;
+}
+
+export default function CourseTypesPage() {
+  const [types, setTypes] = useState<CourseType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentType, setCurrentType] = useState<Partial<CourseType>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchTypes();
+  }, []);
+
+  const fetchTypes = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("class_type")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching types:", error);
+    } else {
+      setTypes(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async () => {
+    setError(null);
+    if (!currentType.name || !currentType.label_zh) {
+      setError("請填寫所有必填欄位");
+      return;
+    }
+
+    try {
+      if (currentType.id) {
+        // Update
+        const { error } = await supabase
+          .from("class_type")
+          .update({
+            name: currentType.name,
+            label_zh: currentType.label_zh,
+            is_active: currentType.is_active,
+          })
+          .eq("id", currentType.id);
+        if (error) throw error;
+      } else {
+        // Create
+        const { error } = await supabase.from("class_type").insert({
+          name: currentType.name,
+          label_zh: currentType.label_zh,
+          is_active: currentType.is_active ?? true,
+        });
+        if (error) throw error;
+      }
+
+      setIsEditing(false);
+      setCurrentType({});
+      fetchTypes();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("確定要刪除此類型嗎？")) return;
+
+    const { error } = await supabase.from("class_type").delete().eq("id", id);
+    if (error) {
+      alert("刪除失敗：" + error.message);
+    } else {
+      fetchTypes();
+    }
+  };
+
+  return (
+    <div className="p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          課程類型管理
+        </h1>
+        <button
+          onClick={() => {
+            setCurrentType({ is_active: true });
+            setIsEditing(true);
+            setError(null);
+          }}
+          className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined">add</span>
+          新增類型
+        </button>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-sm font-medium">
+            <tr>
+              <th className="px-6 py-4">代碼 (Key)</th>
+              <th className="px-6 py-4">顯示名稱 (中文)</th>
+              <th className="px-6 py-4">狀態</th>
+              <th className="px-6 py-4 text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            {loading ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                  載入中...
+                </td>
+              </tr>
+            ) : types.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                  尚無資料
+                </td>
+              </tr>
+            ) : (
+              types.map((type) => (
+                <tr
+                  key={type.id}
+                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                >
+                  <td className="px-6 py-4 font-mono text-sm text-gray-600 dark:text-gray-300">
+                    {type.name}
+                  </td>
+                  <td className="px-6 py-4 text-gray-900 dark:text-white font-medium">
+                    {type.label_zh}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        type.is_active
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400"
+                      }`}
+                    >
+                      {type.is_active ? "啟用" : "停用"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => {
+                        setCurrentType(type);
+                        setIsEditing(true);
+                        setError(null);
+                      }}
+                      className="text-sky-500 hover:text-sky-600 mr-3"
+                    >
+                      編輯
+                    </button>
+                    <button
+                      onClick={() => handleDelete(type.id)}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      刪除
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Edit/Create Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {currentType.id ? "編輯類型" : "新增類型"}
+              </h3>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
+                  {error}
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  代碼 (Key) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={currentType.name || ""}
+                  onChange={(e) =>
+                    setCurrentType({ ...currentType, name: e.target.value })
+                  }
+                  placeholder="例如：online"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  用於系統識別，建議使用英文 (例如: 1-on-1, group)
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  顯示名稱 (中文) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={currentType.label_zh || ""}
+                  onChange={(e) =>
+                    setCurrentType({ ...currentType, label_zh: e.target.value })
+                  }
+                  placeholder="例如：線上課程"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none"
+                />
+              </div>
+              <div className="flex items-center">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={currentType.is_active ?? true}
+                    onChange={(e) =>
+                      setCurrentType({
+                        ...currentType,
+                        is_active: e.target.checked,
+                      })
+                    }
+                    className="w-4 h-4 text-sky-500 border-gray-300 rounded focus:ring-sky-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                    啟用此類型
+                  </span>
+                </label>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm shadow-sky-500/30"
+              >
+                儲存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

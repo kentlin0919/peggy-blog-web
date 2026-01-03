@@ -369,17 +369,8 @@ export default function TeacherCoursesPage() {
                               /{selectedCourse.priceUnit || "每人"}
                             </p>
                           </div>
-                          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-border-light dark:border-border-dark">
-                            <p className="text-xs text-text-sub mb-1">
-                              預計時長
-                            </p>
-                            <p className="text-lg font-bold text-slate-900 dark:text-white">
-                              {selectedCourse.durationMinutes
-                                ? `${selectedCourse.durationMinutes} 分鐘`
-                                : "未設定"}
-                            </p>
-                          </div>
                         </div>
+                        {/* Duration Card Removed */}
                         <div>
                           <h4 className="text-xs font-bold text-text-sub uppercase mb-2">
                             標籤
@@ -423,11 +414,6 @@ export default function TeacherCoursesPage() {
                                   <h4 className="font-bold text-slate-800 dark:text-white text-sm">
                                     {section.title}
                                   </h4>
-                                  {section.duration && (
-                                    <span className="text-xs text-text-sub bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">
-                                      {section.duration} min
-                                    </span>
-                                  )}
                                 </div>
                                 <p className="text-xs text-text-sub line-clamp-2">
                                   {section.content || "尚無內容描述..."}
