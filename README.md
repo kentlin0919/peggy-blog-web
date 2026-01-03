@@ -1,93 +1,122 @@
-# TimeCarve-web
+# TimeCarve 刻時
 
-這是一個專為牙體技術教學設計的現代化平台，整合了課程展示、線上預約與教學管理系統。專案採用 **Next.js (App Router)** 構建，並針對 **GitHub Pages** 進行了靜態輸出 (Static Export) 優化。
+TimeCarve 是一個現代化的家教預約與時間管理平台，專為教育工作者與學生設計。它提供了一套完整的工具來管理課程、安排預約、追蹤學習進度，並優化教學體驗。
 
-## 🚀 專案特色
+## 🎯 專案概述
 
-- **靜態輸出優化:** 設定為 `output: export`，可部署於任何靜態主機（如 GitHub Pages, Vercel, Netlify）。
-- **路由群組架構:** 使用 Next.js App Router 的 Route Groups `(public)` 來區分公開與受保護的頁面結構。
-- **客戶端權限管理:** 由於靜態輸出的限制，採用客製化的 `AuthGuard` 組件來實現前端路由保護（取代 Middleware）。
-- **動態路由預渲染:** 所有動態頁面（如課程詳情、學生資料）皆實作 `generateStaticParams` 以支援建置時生成。
-- **現代化 UI/UX:** 使用 **Tailwind CSS v4** 打造響應式且精美的介面。
+本專案採用 **Clean Architecture** (整潔架構) 與 **Static Export** 模式構建，旨在提供高效、可維護且易於部署的前端應用。
+
+- **核心目標**: 連結學生與教師，簡化預約流程，提升教學管理效率。
+- **主要特色**: RWD 響應式設計、即時預約系統、角色分流 (學生/教師/管理員)、數據儀表板。
+- **部署模式**: GitHub Pages (Static Export) + Supabase (Backend-as-a-Service)。
 
 ## 🛠 技術堆疊
 
-- **核心框架:** [Next.js 16](https://nextjs.org/) (App Router)
-- **語言:** [TypeScript](https://www.typescriptlang.org/)
-- **樣式:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **資料庫 & 認證:** [Supabase](https://supabase.com/) (整合中)
-- **部署:** GitHub Pages (透過 GitHub Actions)
+主要技術選型如下：
 
-## 📂 專案結構
+- **核心框架**: [Next.js 16 (App Router)](https://nextjs.org/)
+- **語言**: [TypeScript](https://www.typescriptlang.org/)
+- **樣式系統**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **後端服務**: [Supabase](https://supabase.com/) (Auth, PostgreSQL DB, Storage)
+- **資料圖表**: [Chart.js](https://www.chartjs.org/)
+- **UI 組件**: 客製化設計系統 + [Geist Font](https://vercel.com/font)
+- **部署**: GitHub Actions -> GitHub Pages
 
-```
-app/
-├── (public)/               # 公開頁面 (無需登入)
-│   ├── auth/               # 登入、註冊頁面 (Client-side Form)
-│   ├── courses/            # 課程列表與詳情 (Static params)
-│   └── teachers/           # 師資介紹
-├── student/                # 學生專區 (受 AuthGuard 保護)
-│   ├── dashboard/          # 儀表板
-│   └── booking/            # 預約系統
-├── teacher/                # 教師後台 (受 AuthGuard 保護)
-│   ├── courses/            # 課程編輯
-│   └── students/           # 學生管理 CRM
-├── components/             # 共用組件
-│   └── AuthGuard.tsx       # 客戶端權限守衛
-├── api/                    # API Route Handlers (開發中)
-└── layout.tsx              # Root Layout
-```
+## 🚀 功能模組與頁面路由
 
-## ⚡️ 快速開始
+專案結構清晰，依據使用者角色劃分為不同區域：
 
-### 1. 安裝依賴
+### 🌐 公開頁面 (Public)
+
+位於 `app/(public)`，無需登入即可訪問：
+
+- `/`: 首頁 (Landing Page)
+- `/auth/login`: 登入頁面
+- `/auth/register`: 註冊頁面
+- `/auth/reset-password`: 重設密碼
+- `/courses`: 課程探索列表
+- `/courses/[courseId]`: 課程詳細資訊
+- `/teachers`: 師資陣容介紹
+- `/legal/*`: 服務條款與隱私權政策
+
+### 👨‍🎓 學生專區 (Student Portal)
+
+位於 `app/student`，需學生權限：
+
+- `/student/dashboard`: 學生儀表板 (概況、下堂課提醒)
+- `/student/bookings`: 預約管理 (查看、取消、改期)
+- `/student/booking`: 新增預約流程
+- `/student/courses`: 我的課程 (已購買/已報名)
+- `/student/profile`: 個人資料與設定
+- `/student/progress`: 學習進度追蹤
+- `/student/notifications`: 系統通知
+
+### 👩‍🏫 教師後台 (Teacher Console)
+
+位於 `app/teacher`，需教師權限：
+
+- `/teacher/dashboard`: 教師儀表板 (營收概覽、近期課程)
+- `/teacher/courses`: 課程管理 (新增、編輯、上架、教案編寫)
+- `/teacher/bookings`: 預約審核與行事曆
+- `/teacher/students`: 學生 CRM (學員名單、學習紀錄)
+- `/teacher/reports`: 營收與數據報表
+- `/teacher/settings`: 教學設定 (預約規則、請假規則)
+- `/teacher/profile`: 講師個人檔案編輯
+- `/teacher/portfolio`: 作品集管理
+
+### 🛡 管理員後台 (Admin Panel)
+
+位於 `app/admin`，需管理員權限：
+
+- `/admin/dashboard`: 系統總覽
+- `/admin/teachers`: 教師帳號管理
+- `/admin/students`: 學生帳號管理
+- `/admin/class-types`: 課程類型設定
+- `/admin/tags`: 標籤管理
+
+## 🏁 快速開始
+
+### 1. 環境準備
+
+確保您已安裝 [Node.js](https://nodejs.org/) (建議 v20+) 和 [pnpm](https://pnpm.io/)。
+
+### 2. 安裝依賴
 
 ```bash
 pnpm install
 ```
 
-### 2. 啟動開發伺服器
+### 3. 設定環境變數
+
+複製 `.env.example` 為 `.env.local` 並填入您的 Supabase 資訊：
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### 4. 啟動開發伺服器
 
 ```bash
 pnpm dev
 ```
 
-前往 [http://localhost:3000](http://localhost:3000) 查看成果。
+瀏覽器打開 [http://localhost:3000](http://localhost:3000) 即可看到畫面。
 
-### 3. 建置生產版本
-
-此指令會生成 `out` 資料夾，包含所有靜態 HTML/CSS/JS 檔案。
+### 5. 建置與部署
 
 ```bash
 pnpm build
 ```
 
-## 🔐 權限與路由保護
+此指令會執行 `next build` 並輸出靜態檔案至 `out/` 目錄，適用於靜態託管服務。
 
-由於專案採用靜態輸出，Next.js 的 `middleware.ts` 無法在 GitHub Pages 等靜態環境中運作。因此，我們採用 **Client-side Auth Guard** 策略：
+## ⚠️ 開發規範
 
-- **AuthGuard 元件:** 位於 `app/components/AuthGuard.tsx`，在頁面載入時檢查認證狀態（Cookie 或 LocalStorage）。
-- **Layout 保護:** `app/student/layout.tsx` 與 `app/teacher/layout.tsx` 皆已包覆 `<AuthGuard>`，確保未登入使用者無法存取這些路徑。
+- **Static Export 限制**: 由於專案設定為靜態輸出，**禁止使用** Middleware (`middleware.ts`)、API Routes (`app/api/*`) 以及任何依賴 Node.js Runtime 的 Server Component 功能 (`cookies()`, `headers()`)。
+- **Supabase Migration**: 資料庫變更**必須**使用 CLI 指令 `supabase migration new <name>` 建立，禁止手動修改 Schema。
+- **Linting**: 提交程式碼前請確保通過 ESLint 檢查。
 
-## ⚠️ 開發注意事項
+---
 
-1.  **動態路由 (Dynamic Routes):**
-    若要在靜態輸出中使用動態路由（如 `[id]/.tsx`），**必須** 在該頁面匯出 `generateStaticParams` 函式。
-
-    ```tsx
-    export async function generateStaticParams() {
-      // 回傳一組預設參數讓 Build 通過
-      return [{ id: "demo" }];
-    }
-    ```
-
-2.  **客戶端互動 (Use Client):**
-    包含 `useState`, `useEffect`, `onClick` 或表單 `onSubmit` 的組件，務必在檔案最上方加上 `'use client'`。
-
-3.  **GitHub Pages 部署:**
-    專案包含 `.github/workflows/deploy.yml`，推送到 `main` 分支時會自動觸發。
-    _請確保 GitHub Repo 的 Settings -> Pages -> Source 已設定為 **GitHub Actions**。_
-
-## 📄 授權
-
-MIT License
+© 2025 TimeCarve. All rights reserved.

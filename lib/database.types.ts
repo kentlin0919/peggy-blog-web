@@ -605,6 +605,12 @@ export type Database = {
         }
         Returns: string
       }
+      get_public_teacher_profile: {
+        Args: {
+          code: string
+        }
+        Returns: Json
+      }
       has_role: { Args: { target_role_name: string }; Returns: boolean }
     }
     Enums: {
