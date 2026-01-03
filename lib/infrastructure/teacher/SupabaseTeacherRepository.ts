@@ -72,6 +72,7 @@ export class SupabaseTeacherRepository implements TeacherRepository {
         experienceYears: teacherData.experience_years,
         basePrice: teacherData.base_price,
         specialties: teacherData.specialties || [],
+        philosophyItems: teacherData.philosophy_items || [],
         isPublic: teacherData.is_public || false,
         
         googleCalendarEnabled: teacherData.google_calendar_enabled || false,
@@ -99,6 +100,7 @@ export class SupabaseTeacherRepository implements TeacherRepository {
     if (profile.experienceYears !== undefined) teacherInfoUpdates.experience_years = profile.experienceYears;
     if (profile.basePrice !== undefined) teacherInfoUpdates.base_price = profile.basePrice;
     if (profile.specialties !== undefined) teacherInfoUpdates.specialties = profile.specialties;
+    if (profile.philosophyItems !== undefined) teacherInfoUpdates.philosophy_items = profile.philosophyItems;
     if (profile.isPublic !== undefined) teacherInfoUpdates.is_public = profile.isPublic;
 
     // Execute updates in parallel

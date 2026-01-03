@@ -23,7 +23,7 @@ export default function CourseDetailForm({
   const [form, setForm] = useState<Partial<Course>>({
     title: "",
     price: 0,
-    priceUnit: "每人",
+    priceUnit: "小時",
     desc: "",
     content: "",
     sections: [],

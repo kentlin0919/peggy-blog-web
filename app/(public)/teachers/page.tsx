@@ -14,6 +14,11 @@ type PublicTeacherProfile = {
   experience_years: number | null;
   base_price: number | null;
   specialties: string[] | null;
+  philosophy_items: {
+    title: string;
+    description: string;
+    icon: string;
+  }[] | null;
 };
 
 const portfolioItems = [
@@ -153,6 +158,26 @@ function TeachersContent() {
     )}&background=EEF2FF&color=1F2937&size=500`;
   const specialties = profile.specialties || [];
   const experienceYears = profile.experience_years ?? 0;
+  const philosophyItems =
+    profile.philosophy_items && profile.philosophy_items.length > 0
+      ? profile.philosophy_items
+      : [
+          {
+            icon: "psychology",
+            title: "幾何解構思維",
+            description: "將複雜的形態簡化為幾何邏輯，讓學習更具條理。",
+          },
+          {
+            icon: "visibility",
+            title: "光影美學訓練",
+            description: "強調從不同角度觀察光影變化，培養精準美感。",
+          },
+          {
+            icon: "handshake",
+            title: "溫柔耐心的陪伴",
+            description: "理解學習瓶頸，提供溫暖且具體的調整建議。",
+          },
+        ];
 
   return (
     <div className="relative flex min-h-screen w-full flex-col group/design-root bg-background-light dark:bg-background-dark text-[#111618] dark:text-[#f0f3f4] font-display overflow-x-hidden selection:bg-primary selection:text-white">
@@ -349,23 +374,7 @@ function TeachersContent() {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  {
-                    icon: "psychology",
-                    title: "幾何解構思維",
-                    text: "將複雜的形態簡化為幾何邏輯，讓學習過程更具條理。",
-                  },
-                  {
-                    icon: "visibility",
-                    title: "光影美學訓練",
-                    text: "強調從不同角度觀察光影變化，培養精準的美學判斷。",
-                  },
-                  {
-                    icon: "handshake",
-                    title: "溫柔耐心的陪伴",
-                    text: "理解學習瓶頸，提供溫暖且具體的調整建議。",
-                  },
-                ].map((item) => (
+                {philosophyItems.map((item) => (
                   <div
                     key={item.title}
                     className="group flex flex-col gap-5 rounded-2xl bg-white dark:bg-[#1a2c32] p-8 shadow-soft border border-gray-100 dark:border-gray-800 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-primary/20"
@@ -380,7 +389,7 @@ function TeachersContent() {
                         {item.title}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                        {item.text}
+                        {item.description}
                       </p>
                     </div>
                   </div>

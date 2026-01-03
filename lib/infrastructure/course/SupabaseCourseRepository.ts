@@ -108,26 +108,37 @@ export class SupabaseCourseRepository implements CourseRepository {
       const tagName = tag.text.trim();
       if (!tagName) continue;
 
-      // Check existence
-      const { data: existing } = await supabase
+      // Check existence: Search for my tag OR a global tag
+      const { data: existingTags } = await supabase
         .from("tags")
-        .select("id")
-        .eq("teacher_id", teacherId)
-        .eq("name", tagName)
-        .single();
+        .select("id, teacher_id")
+        .or(`teacher_id.eq.${teacherId},teacher_id.is.null`)
+        .eq("name", tagName);
 
-      if (existing) {
-        tagIds.push(existing.id);
+      // Prefer global tag if available? Or prefer personal?
+      // Let's prefer global tag if exact match, to avoid cluttering personal tags?
+      // Or if personal tag exists, use it.
+      // If multiple found (e.g. I have "Math" and Global has "Math"), use mine or global?
+      // Let's use the first one found.
+      
+      let targetTagId: string | null = null;
+
+      if (existingTags && existingTags.length > 0) {
+        targetTagId = existingTags[0].id;
       } else {
-        // Create new
+        // Create new personal tag
         const { data: newTag, error } = await supabase
           .from("tags")
           .insert({ teacher_id: teacherId, name: tagName })
           .select("id")
           .single();
         
-        if (newTag) tagIds.push(newTag.id);
+        if (newTag) targetTagId = newTag.id;
         else if (error) console.error("Error creating tag:", error);
+      }
+
+      if (targetTagId) {
+        tagIds.push(targetTagId);
       }
     }
 
@@ -137,7 +148,9 @@ export class SupabaseCourseRepository implements CourseRepository {
 
     // Then insert new links
     if (tagIds.length > 0) {
-      const links = tagIds.map(tagId => ({
+      // De-duplicate tag IDs in case logic pushed same ID twice
+      const uniqueTagIds = Array.from(new Set(tagIds));
+      const links = uniqueTagIds.map(tagId => ({
         course_id: courseId,
         tag_id: tagId
       }));
@@ -175,7 +188,7 @@ export class SupabaseCourseRepository implements CourseRepository {
       icon: "school",
       iconColor: "blue", 
       tags: mappedTags,
-      priceUnit: "每人",
+      priceUnit: "小時",
 
       createdAt: data.created_at,
       updatedAt: data.updated_at,

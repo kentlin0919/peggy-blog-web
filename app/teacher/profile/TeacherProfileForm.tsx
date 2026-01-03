@@ -20,6 +20,20 @@ export default function TeacherProfileForm({
   onAddEducation,
   onDeleteEducation,
 }: Props) {
+  const iconOptions = [
+    "psychology",
+    "visibility",
+    "handshake",
+    "lightbulb",
+    "school",
+    "auto_awesome",
+    "emoji_objects",
+    "insights",
+    "diversity_3",
+    "construction",
+    "menu_book",
+    "self_improvement",
+  ];
   const [profile, setProfile] = useState<TeacherProfile>(initialProfile);
   const [saving, setSaving] = useState(false);
   const [newSpecialty, setNewSpecialty] = useState("");
@@ -108,6 +122,38 @@ export default function TeacherProfileForm({
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  const handlePhilosophyChange = (
+    index: number,
+    field: "title" | "description" | "icon",
+    value: string
+  ) => {
+    const items = profile.philosophyItems || [];
+    const updated = items.map((item, idx) =>
+      idx === index ? { ...item, [field]: value } : item
+    );
+    handleChange("philosophyItems", updated);
+  };
+
+  const handleAddPhilosophyItem = () => {
+    const items = profile.philosophyItems || [];
+    handleChange("philosophyItems", [
+      ...items,
+      {
+        title: "新教學理念",
+        description: "",
+        icon: "lightbulb",
+      },
+    ]);
+  };
+
+  const handleRemovePhilosophyItem = (index: number) => {
+    const items = profile.philosophyItems || [];
+    handleChange(
+      "philosophyItems",
+      items.filter((_, idx) => idx !== index)
+    );
   };
 
   return (
@@ -348,6 +394,115 @@ export default function TeacherProfileForm({
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <div className="flex items-center justify-between mb-6 border-b border-border-light dark:border-border-dark pb-3">
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                教學理念卡片
+              </h3>
+              <button
+                type="button"
+                onClick={handleAddPhilosophyItem}
+                className="text-xs font-bold text-primary hover:text-primary-dark"
+              >
+                新增卡片
+              </button>
+            </div>
+            <div className="space-y-4">
+              {(profile.philosophyItems || []).length === 0 && (
+                <p className="text-sm text-text-sub">
+                  尚未設定教學理念卡片。
+                </p>
+              )}
+              {(profile.philosophyItems || []).map((item, index) => (
+                <div
+                  key={`${item.title}-${index}`}
+                  className="rounded-xl border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800/50 p-4"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-semibold text-text-sub">
+                      卡片 {index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhilosophyItem(index)}
+                      className="text-xs font-bold text-red-500 hover:text-red-600"
+                    >
+                      刪除
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-700 dark:text-gray-300">
+                        Icon 名稱
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={item.icon}
+                          onChange={(e) =>
+                            handlePhilosophyChange(
+                              index,
+                              "icon",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-3 py-2 rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                        >
+                          {iconOptions.map((icon) => (
+                            <option key={icon} value={icon}>
+                              {icon}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="size-10 rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 flex items-center justify-center text-primary">
+                          <span className="material-symbols-outlined text-[22px]">
+                            {item.icon || "help"}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-text-sub">
+                        使用 Google Material Symbols 名稱
+                      </p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-slate-700 dark:text-gray-300">
+                        標題
+                      </label>
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) =>
+                          handlePhilosophyChange(
+                            index,
+                            "title",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-3">
+                      <label className="text-xs font-medium text-slate-700 dark:text-gray-300">
+                        內容
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={item.description}
+                        onChange={(e) =>
+                          handlePhilosophyChange(
+                            index,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-border-light dark:border-border-dark bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

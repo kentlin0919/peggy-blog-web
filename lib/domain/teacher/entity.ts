@@ -24,6 +24,11 @@ export interface TeacherProfile {
   experienceYears: number | null;
   basePrice: number | null;
   specialties: string[];
+  philosophyItems?: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
   isPublic: boolean;
   
   // Settings

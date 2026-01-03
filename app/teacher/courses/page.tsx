@@ -93,7 +93,7 @@ export default function TeacherCoursesPage() {
           tags: formData.tags || [],
           icon: formData.icon || "school",
           iconColor: formData.iconColor || "blue",
-          priceUnit: formData.priceUnit || "每人",
+          priceUnit: formData.priceUnit || "小時",
         };
 
         const createdCourse = await courseRepo.createCourse(newCourseData);
@@ -148,7 +148,7 @@ export default function TeacherCoursesPage() {
     setEditForm({
       title: "",
       price: 0,
-      priceUnit: "每人",
+      priceUnit: "小時",
       desc: "",
       status: "draft",
       sections: [],
@@ -285,7 +285,7 @@ export default function TeacherCoursesPage() {
                               )}
                             </div>
                             <p className="text-xs text-text-sub truncate mt-0.5">
-                              {course.priceUnit || "每人"} • $
+                              {course.priceUnit || "小時"} • $
                               {course.price?.toLocaleString() || 0}
                             </p>
                           </div>
@@ -366,7 +366,7 @@ export default function TeacherCoursesPage() {
                               NT$ {(selectedCourse.price || 0).toLocaleString()}
                             </p>
                             <p className="text-xs text-text-sub mt-0.5">
-                              /{selectedCourse.priceUnit || "每人"}
+                              /{selectedCourse.priceUnit || "小時"}
                             </p>
                           </div>
                         </div>
