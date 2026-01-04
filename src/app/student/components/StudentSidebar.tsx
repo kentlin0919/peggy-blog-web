@@ -1,12 +1,21 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSystemModules } from "@/hooks/useSystemModules";
 
 export default function StudentSidebar() {
   const pathname = usePathname();
+  const { isModuleEnabled, loading } = useSystemModules();
 
   const isActive = (path: string) => pathname === path;
+
+  // Ideally show a skeleton or nothing while loading, but keeping simple for now
+  // to avoid layout shift, maybe just render default or wait?
+  // Let's render but hide disabled items. If loading, isModuleEnabled might return false (default safe).
+  // Actually in the hook I defaulted to false if not found.
+  // But on initial load empty list -> false.
+  // So items will pop in. That's acceptable for MVP.
 
   return (
     <aside className="w-72 flex-shrink-0 flex flex-col bg-white dark:bg-gray-800 border-r border-slate-200 dark:border-slate-800 transition-colors duration-200 hidden md:flex z-30 shadow-sm fixed h-full">
@@ -28,92 +37,104 @@ export default function StudentSidebar() {
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-4">
             主選單
           </div>
-          <Link
-            href="/student/dashboard"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
-              isActive('/student/dashboard')
-                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            {isActive('/student/dashboard') && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
-            )}
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              dashboard
-            </span>
-            <span className="text-sm font-bold">儀表板</span>
-          </Link>
-          <Link
-            href="/student/courses"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
-              isActive('/student/courses')
-                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            {isActive('/student/courses') && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
-            )}
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              menu_book
-            </span>
-            <span className="text-sm font-medium">課程方案</span>
-          </Link>
-          <Link
-            href="/student/booking"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
-              isActive('/student/booking')
-                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-             {isActive('/student/booking') && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
-            )}
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              calendar_month
-            </span>
-            <span className="text-sm font-medium">預約記錄</span>
-          </Link>
-          <Link
-            href="/student/progress"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
-              isActive('/student/progress')
-                ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-             {isActive('/student/progress') && (
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
-            )}
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              trending_up
-            </span>
-            <span className="text-sm font-medium">學習進度</span>
-          </Link>
+          {isModuleEnabled("student_dashboard") && (
+            <Link
+              href="/student/dashboard"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
+                isActive("/student/dashboard")
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              {isActive("/student/dashboard") && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
+              )}
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                dashboard
+              </span>
+              <span className="text-sm font-bold">儀表板</span>
+            </Link>
+          )}
+          {isModuleEnabled("student_courses") && (
+            <Link
+              href="/student/courses"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
+                isActive("/student/courses")
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              {isActive("/student/courses") && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
+              )}
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                menu_book
+              </span>
+              <span className="text-sm font-medium">課程方案</span>
+            </Link>
+          )}
+          {isModuleEnabled("student_booking") && (
+            <Link
+              href="/student/booking"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
+                isActive("/student/booking")
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              {isActive("/student/booking") && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
+              )}
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                calendar_month
+              </span>
+              <span className="text-sm font-medium">預約記錄</span>
+            </Link>
+          )}
+          {isModuleEnabled("student_progress") && (
+            <Link
+              href="/student/progress"
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative overflow-hidden ${
+                isActive("/student/progress")
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200"
+              }`}
+            >
+              {isActive("/student/progress") && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 rounded-r-full"></div>
+              )}
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                trending_up
+              </span>
+              <span className="text-sm font-medium">學習進度</span>
+            </Link>
+          )}
 
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 mb-2 px-4">
             帳戶管理
           </div>
-          <Link
-            href="#"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-all group"
-          >
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              settings
-            </span>
-            <span className="text-sm font-medium">個人設定</span>
-          </Link>
-          <Link
-            href="#"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-all group"
-          >
-            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
-              help
-            </span>
-            <span className="text-sm font-medium">支援中心</span>
-          </Link>
+          {isModuleEnabled("student_settings") && (
+            <Link
+              href="#"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-all group"
+            >
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                settings
+              </span>
+              <span className="text-sm font-medium">個人設定</span>
+            </Link>
+          )}
+          {isModuleEnabled("student_support") && (
+            <Link
+              href="#"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-all group"
+            >
+              <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">
+                help
+              </span>
+              <span className="text-sm font-medium">支援中心</span>
+            </Link>
+          )}
         </nav>
 
         {/* User Profile */}

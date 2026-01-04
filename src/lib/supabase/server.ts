@@ -1,12 +1,34 @@
-// This file is intentionally stubbed for Static Export (GitHub Pages).
-// Server-side Supabase client is not available in static builds.
-// Use the client-side version from ./client.ts instead.
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { Database } from '@/types/database.types'
 
-import { createClient as createClientSide } from './client'
-
-// Re-export the client-side version for compatibility
-// Note: This will NOT have server-side cookie access
 export async function createClient() {
-  console.warn('[Supabase] Server-side client is not available in static export. Using client-side version.')
-  return createClientSide()
+  const cookieStore = await cookies()
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+                      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
+
+  return createServerClient<Database>(
+    supabaseUrl,
+    supabaseKey,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
 }

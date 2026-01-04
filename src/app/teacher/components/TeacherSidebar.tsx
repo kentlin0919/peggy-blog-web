@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useSystemModules } from "@/hooks/useSystemModules";
 
 export default function TeacherSidebar({
   isOpen,
@@ -15,6 +16,7 @@ export default function TeacherSidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { isModuleEnabled } = useSystemModules();
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
   const [teacherCode, setTeacherCode] = useState("");
@@ -63,28 +65,60 @@ export default function TeacherSidebar({
     {
       category: "管理中心",
       items: [
-        { name: "儀表板總覽", href: "/teacher/dashboard", icon: "dashboard" },
+        {
+          name: "儀表板總覽",
+          href: "/teacher/dashboard",
+          icon: "dashboard",
+          key: "teacher_dashboard",
+        },
         {
           name: "預約管理",
           href: "/teacher/bookings",
           icon: "calendar_month",
           badge: "3",
+          key: "teacher_bookings",
         },
-        { name: "課程方案", href: "/teacher/courses", icon: "school" },
+        {
+          name: "課程方案",
+          href: "/teacher/courses",
+          icon: "school",
+          key: "teacher_courses",
+        },
         {
           name: "作品集管理",
           href: "/teacher/portfolio",
           icon: "photo_library",
+          key: "teacher_portfolio",
         },
-        { name: "學生資訊", href: "/teacher/students", icon: "group" },
-        { name: "個人檔案", href: "/teacher/profile", icon: "person" },
+        {
+          name: "學生資訊",
+          href: "/teacher/students",
+          icon: "group",
+          key: "teacher_students",
+        },
+        {
+          name: "個人檔案",
+          href: "/teacher/profile",
+          icon: "person",
+          key: "teacher_profile",
+        },
       ],
     },
     {
       category: "財務與分析",
       items: [
-        { name: "收款管理", href: "/teacher/payments", icon: "payments" },
-        { name: "營收報表", href: "/teacher/reports", icon: "monitoring" },
+        {
+          name: "收款管理",
+          href: "/teacher/payments",
+          icon: "payments",
+          key: "teacher_payments",
+        },
+        {
+          name: "營收報表",
+          href: "/teacher/reports",
+          icon: "monitoring",
+          key: "teacher_reports",
+        },
       ],
     },
   ];
@@ -154,69 +188,80 @@ export default function TeacherSidebar({
             </div>
 
             <nav className="flex flex-col gap-1.5 overflow-y-auto">
-              {menuItems.map((category, idx) => (
-                <div key={idx} className={idx > 0 ? "mt-6" : ""}>
-                  <p className="px-3 text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">
-                    {category.category}
-                  </p>
-                  {category.items.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => onClose()}
-                        className={`
-                                    flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium group
-                                    ${
-                                      isActive
-                                        ? "bg-primary/10 text-primary-dark dark:text-primary border-l-4 border-primary"
-                                        : "text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary"
-                                    }
-                                `}
-                      >
-                        <span
-                          className={`material-symbols-outlined ${
-                            isActive
-                              ? "filled"
-                              : "group-hover:text-primary transition-colors"
-                          }`}
+              {menuItems.map((category, idx) => {
+                // Filter items based on modules
+                const visibleItems = category.items.filter((item) =>
+                  isModuleEnabled(item.key)
+                );
+
+                if (visibleItems.length === 0) return null;
+
+                return (
+                  <div key={idx} className={idx > 0 ? "mt-6" : ""}>
+                    <p className="px-3 text-xs font-semibold text-text-sub uppercase tracking-wider mb-2">
+                      {category.category}
+                    </p>
+                    {visibleItems.map((item) => {
+                      const isActive = pathname === item.href;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => onClose()}
+                          className={`
+                                      flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium group
+                                      ${
+                                        isActive
+                                          ? "bg-primary/10 text-primary-dark dark:text-primary border-l-4 border-primary"
+                                          : "text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary"
+                                      }
+                                  `}
                         >
-                          {item.icon}
-                        </span>
-                        <span>{item.name}</span>
-                        {item.badge && (
-                          <span className="ml-auto bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                            {item.badge}
+                          <span
+                            className={`material-symbols-outlined ${
+                              isActive
+                                ? "filled"
+                                : "group-hover:text-primary transition-colors"
+                            }`}
+                          >
+                            {item.icon}
                           </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ))}
+                          <span>{item.name}</span>
+                          {item.badge && (
+                            <span className="ml-auto bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </nav>
           </div>
 
           <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border-light dark:border-border-dark">
-            <Link
-              href="/teacher/settings"
-              onClick={() => onClose()}
-              className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                pathname === "/teacher/settings"
-                  ? "bg-primary/10 text-primary-dark dark:text-primary border-l-4 border-primary"
-                  : "text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-              }`}
-            >
-              <span
-                className={`material-symbols-outlined ${
-                  pathname === "/teacher/settings" ? "filled" : ""
+            {isModuleEnabled("teacher_settings") && (
+              <Link
+                href="/teacher/settings"
+                onClick={() => onClose()}
+                className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+                  pathname === "/teacher/settings"
+                    ? "bg-primary/10 text-primary-dark dark:text-primary border-l-4 border-primary"
+                    : "text-slate-600 dark:text-gray-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                settings
-              </span>
-              <span className="text-sm font-medium">系統設定</span>
-            </Link>
+                <span
+                  className={`material-symbols-outlined ${
+                    pathname === "/teacher/settings" ? "filled" : ""
+                  }`}
+                >
+                  settings
+                </span>
+                <span className="text-sm font-medium">系統設定</span>
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"

@@ -184,6 +184,25 @@ export default function AdminSidebar({
             <span className="font-medium text-sm">財務報表</span>
           </Link>
           <Link
+            href="/admin/modules"
+            onClick={() => onClose()}
+            className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg group transition-colors ${
+              isActive("/admin/modules")
+                ? "bg-sky-50 dark:bg-sky-500/20 text-sky-500"
+                : "text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+            }`}
+          >
+            <span
+              className={`material-symbols-outlined text-xl ${
+                !isActive("/admin/modules") &&
+                "group-hover:text-sky-500 transition-colors"
+              }`}
+            >
+              extension
+            </span>
+            <span className="font-medium text-sm">模組管理</span>
+          </Link>
+          <Link
             href="/admin/settings"
             onClick={() => onClose()}
             className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg group transition-colors ${

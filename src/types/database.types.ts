@@ -538,6 +538,36 @@ export type Database = {
           }
         ]
       }
+      system_modules: {
+        Row: {
+          id: string
+          key: string
+          label: string
+          role: "student" | "teacher" | "admin"
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          label: string
+          role: "student" | "teacher" | "admin"
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          label?: string
+          role?: "student" | "teacher" | "admin"
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       course_tags: {
         Row: {
           course_id: string
