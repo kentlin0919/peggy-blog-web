@@ -1,218 +1,91 @@
-# TimeCarve 刻時 - 專案指南
+# TimeCarve (刻時) - Project Context & Rules
 
-## 專案概述
+## 1. 專案概述 (Project Overview)
+TimeCarve 是一個現代化的家教預約與媒合平台，專注於提供高效的時間管理與課程預約體驗。專案採用 **Next.js 16 (App Router)** 結合 **Clean Architecture** 架構開發，並使用 **Supabase** 作為後端服務（Auth, DB, Storage）。
 
-這是一個基於 **Next.js (App Router)** 構建的現代化家教預約平台專案，部署於 **Vercel**。TimeCarve 提供學生與教師高效的時間管理及課程預約工具，幫助他們規劃課表、管理預約、並追蹤個人化的學習進度。
+## 2. 技術堆疊 (Tech Stack)
 
-## 技術堆疊
+### Core
+- **Framework**: Next.js 16.0.10 (App Router, Turbopack)
+- **Language**: TypeScript 5.x
+- **UI Library**: React 19.2.1
+- **Styling**: Tailwind CSS v4.0 (PostCSS)
+- **State Management**: Zustand v5.0.9
 
-- **前端框架:** [Next.js 16](https://nextjs.org/) (App Router)
-- **前端圖表:** [Chart.js](https://www.chartjs.org/)
-- **後端服務:** [Supabase](https://supabase.com/) (PostgreSQL + Auth)
-- **語言:** [TypeScript](https://www.typescriptlang.org/)
-- **樣式:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **部署:** [Vercel](https://vercel.com/) (自動化 CI/CD)
+### Backend & Services
+- **BaaS**: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **ORM/Client**: @supabase/supabase-js (v2.88), @supabase/ssr
+- **Database Types**: Auto-generated via Supabase CLI (`src/types/database.types.ts`)
 
-## 快速開始
+### Development Tools
+- **Package Manager**: pnpm
+- **Linting**: ESLint v9, eslint-config-next
+- **Formatting**: Prettier (implied)
+- **Icons**: Material Symbols (via Google Fonts/CDN), Lucide React (optional)
 
-### 1. 安裝依賴
+## 3. 系統架構 (Architecture)
 
-```bash
-pnpm install
-```
+本專案嚴格遵循 **Clean Architecture (整潔架構)** 原則，將關注點分離：
 
-### 2. 設定環境變數
+### 目錄結構 (`src/lib/`)
+1.  **Domain Layer (`src/lib/domain/`)**
+    *   **Entities**: 定義核心業務物件與型別 (e.g., `TeacherProfile`, `Course`).
+    *   **Repository Interfaces**: 定義資料存取介面 (e.g., `TeacherRepository`).
+    *   *規則*: 純 TypeScript，不依賴外部框架 (React/Next.js) 或實作細節 (Supabase)。
 
-建立 `.env.local` 檔案：
+2.  **Application Layer (`src/lib/application/`)**
+    *   **Use Cases**: 封裝具體的業務邏輯 (e.g., `BookCourseUseCase`).
+    *   *規則*: 依賴 Domain Layer，協調 Repository 進行操作。
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+3.  **Infrastructure Layer (`src/lib/infrastructure/`)**
+    *   **Implementations**: 實作 Domain 定義的 Repository (e.g., `SupabaseTeacherRepository`).
+    *   *規則*: 處理具體的 API 呼叫、資料庫查詢 (Supabase SDK)。
 
-### 3. 啟動開發伺服器
+4.  **Presentation Layer (`src/app/`, `src/components/`)**
+    *   **UI Components**: React 組件。
+    *   **Pages**: Next.js App Router 頁面。
+    *   *規則*: 透過 Repository 或 Use Case 取得資料，負責渲染與使用者互動。
 
-```bash
-pnpm dev
-# 訪問 http://localhost:3000
-```
+### 路由結構 (`src/app/`)
+-   **(public)**: 公開頁面 (Landing, Course Catalog, Auth)。
+-   **student**: 學生專用後台 (需登入 + Role Check)。
+-   **teacher**: 教師專用後台 (需登入 + Role Check)。
+-   **admin**: 系統管理員後台 (需登入 + Role Check)。
 
-### 4. 建置生產版本
+## 4. 關鍵開發規範 (Development Rules)
 
-```bash
-pnpm build
-```
+### Database & Migrations
+-   **Strict Migration Policy**: 禁止手動修改線上/本地資料庫結構。
+-   **Process**:
+    1.  使用 `supabase migration new <description>` 建立 migration 檔案。
+    2.  撰寫 SQL。
+    3.  執行 `supabase db reset` 或 `supabase db push` 應用變更。
+    4.  執行 `supabase gen types typescript --local > src/types/database.types.ts` 更新型別。
 
-## 專案結構
+### Routing & Auth
+-   **Middleware**: `src/middleware.ts` 處理 Session 更新。
+-   **Auth Guards**: 使用 `AuthGuard.tsx` 或 Higher-Order Components 在 Client 端保護私有路由。
+-   **Role Based Access**: 檢查 `user_info` 表中的身份或 metadata。
 
-```
-time_carve_web/
-├── src/                          # 原始碼目錄
-│   ├── app/                      # Next.js App Router
-│   │   ├── (public)/             # 公開頁面群組 (無需登入)
-│   │   │   ├── auth/             # 登入/註冊/重設密碼
-│   │   │   ├── courses/          # 課程瀏覽
-│   │   │   └── teachers/         # 教師介紹
-│   │   │
-│   │   ├── student/              # 學生專區 (受 AuthGuard 保護)
-│   │   │   ├── dashboard/        # 儀表板
-│   │   │   ├── booking/          # 預約系統
-│   │   │   ├── bookings/         # 預約記錄
-│   │   │   │   └── [bookingId]/  # 預約詳情 (動態路由)
-│   │   │   └── profile/          # 個人檔案
-│   │   │
-│   │   ├── teacher/              # 教師後台 (受 AuthGuard 保護)
-│   │   │   ├── courses/          # 課程管理
-│   │   │   ├── students/         # 學生管理 CRM
-│   │   │   └── reports/          # 營收報表
-│   │   │
-│   │   ├── admin/                # 管理後台
-│   │   ├── layout.tsx            # 根佈局
-│   │   └── globals.css           # 全域樣式
-│   │
-│   ├── components/               # 共用 UI 組件
-│   │   ├── AuthGuard.tsx         # 權限守衛
-│   │   ├── ui/                   # 基礎 UI 組件
-│   │   └── providers/            # Context Providers
-│   │
-│   ├── hooks/                    # 自定義 React Hooks
-│   │   └── useSchools.ts
-│   │
-│   ├── lib/                      # 工具函數與設定
-│   │   ├── supabase.ts           # Supabase 客戶端
-│   │   ├── domain/               # 領域層 (實體與介面)
-│   │   ├── infrastructure/       # 基礎設施層 (Repository 實作)
-│   │   └── application/          # 應用層 (Use Cases)
-│   │
-│   └── types/                    # TypeScript 型別定義
-│       └── database.types.ts     # Supabase 資料庫型別
-│
-├── public/                       # 靜態資源
-├── supabase/                     # Supabase 設定與 Migrations
-├── scripts/                      # 工具腳本
-└── 設定檔案
-```
+### Styling
+-   使用 **Tailwind CSS v4**。
+-   支援 **Dark Mode** (class strategy)。
+-   保持 UI 一致性，參考現有組件 (`src/components/ui`).
 
-## 路徑別名 (Path Aliases)
+## 5. 記憶庫 (Memory Bank)
+*此區域由 Agent 維護，記錄使用者偏好與重要決策*
 
-專案使用以下路徑別名（定義於 `tsconfig.json`）：
+-   **User Language**: Traditional Chinese (繁體中文).
+-   **User Context**:
+    -   目前在台北 (大安區) 尋找租屋，看房日期 2025/12/30, 31 (Historic context).
+    -   專案開發環境為 macOS (Darwin).
+-   **Project Specifics**:
+    -   使用 `pnpm` 進行套件管理。
+    -   目前正在開發「教師個人檔案編輯」與「課程管理」功能。
+    -   DB Schema 包含 `user_info` (通用), `teacher_info` (教師詳情), `student_info`, `courses`, `bookings`.
 
-| 別名             | 對應路徑             |
-| ---------------- | -------------------- |
-| `@/*`            | `./src/*`            |
-| `@/components/*` | `./src/components/*` |
-| `@/hooks/*`      | `./src/hooks/*`      |
-| `@/lib/*`        | `./src/lib/*`        |
-| `@/types/*`      | `./src/types/*`      |
-
-### 使用範例
-
-```typescript
-// ✅ 正確
-import { supabase } from "@/lib/supabase";
-import AuthGuard from "@/components/AuthGuard";
-import { useSchools } from "@/hooks/useSchools";
-import { Database } from "@/types/database.types";
-
-// ❌ 避免使用
-import { supabase } from "../../../lib/supabase";
-```
-
-## 核心架構說明
-
-### 1. Vercel 部署
-
-本專案使用 Vercel 原生部署模式，支援：
-
-- **Server-Side Rendering (SSR)**: 動態渲染頁面
-- **動態路由**: 如 `/student/bookings/[bookingId]` 無需預先生成
-- **API Routes**: 可根據需要建立 `/src/app/api/` 路由
-- **Edge Functions**: 支援邊緣計算功能
-
-### 2. 權限管理 (Client-side Auth)
-
-我們採用前端攔截策略進行權限管理：
-
-- **`AuthGuard.tsx`**: 檢查使用者登入狀態
-- 若無登入憑證，自動導向 `/auth/login`
-- 所有後台頁面 (`/student`, `/teacher`, `/admin`) 皆透過 Layout 包覆此守衛
-
-### 3. Vercel 部署設定
-
-#### 連接 GitHub Repository
-
-1. 前往 [vercel.com](https://vercel.com)
-2. 點擊 **Add New Project**
-3. Import 你的 GitHub repository
-
-#### 環境變數設定
-
-在 Vercel 專案設定 (Settings → Environment Variables) 中新增：
-
-| Variable                        | Value                     |
-| ------------------------------- | ------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | 你的 Supabase Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 你的 Supabase Anon Key    |
-
-### 4. Clean Architecture (整潔架構)
-
-本專案採用 Clean Architecture 的設計原則：
-
-**分層架構**：
-
-1. **領域層 (`lib/domain/`)**: 定義核心實體和業務規則
-2. **應用層 (`lib/application/`)**: 包含 Use Cases
-3. **基礎設施層 (`lib/infrastructure/`)**: 實作資料存取（Supabase）
-4. **表示層 (`app/`, `components/`)**: React 組件和頁面
-
-## 資料庫版本控制規範 (Supabase)
-
-### Migration 建立規則
-
-- **必須使用 CLI 指令**：如須建立資料庫變更，**必須**使用 `supabase migration new <name>` 指令
-
-### `.gitignore` 設定
-
-```
-# Supabase
-supabase/.branches
-supabase/.temp
-supabase/functions/*/deno.lock
-supabase/functions/*/target/
-```
-
-## 功能模組詳情
-
-### 前台 (學生端)
-
-- **首頁與作品集:** RWD 響應式設計，高互動性 UI
-- **課程方案:** 課程列表與詳情頁
-- **學員系統:** 登入後可管理預約、查看課程內容
-
-### 後台 (教師管理端)
-
-- **課程管理:** 編輯課程內容與教案 (支援富文本)
-- **預約系統:** 管理學生預約請求
-- **CRM:** 追蹤學生學習進度與作品集
-
-## 開發規則
-
-### Supabase 客戶端使用
-
-```typescript
-// 標準用法
-import { supabase } from "@/lib/supabase";
-
-// 查詢資料
-const { data, error } = await supabase.from("courses").select("*");
-```
-
-### TypeScript 設定
-
-`tsconfig.json` 必須排除 Supabase Edge Functions 目錄：
-
-```json
-{
-  "exclude": ["node_modules", "supabase/functions"]
-}
-```
+## 6. Agent 行為準則 (Agent Directives)
+1.  **優先使用 Context7**: 回答複雜問題前，先查詢相關文檔。
+2.  **資料驅動**: 分析問題時，優先查看資料庫 Schema (`src/types/database.types.ts`) 確認欄位。
+3.  **代碼一致性**: 產生程式碼時，必須遵循 Clean Architecture 分層結構。
+4.  **繁體中文回應**: 所有對話與解釋預設使用繁體中文。

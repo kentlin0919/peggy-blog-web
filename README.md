@@ -1,122 +1,126 @@
-# TimeCarve 刻時
+# TimeCarve (刻時) ⏳
 
-TimeCarve 是一個現代化的家教預約與時間管理平台，專為教育工作者與學生設計。它提供了一套完整的工具來管理課程、安排預約、追蹤學習進度，並優化教學體驗。
+TimeCarve 是一個專為家教與學生設計的現代化預約媒合平台。透過直覺的介面與強大的管理功能，協助教師建立專業品牌、管理課程與學生，並讓學生能輕鬆預約合適的課程，達成高效的時間管理與學習目標。
 
-## 🎯 專案概述
+![Project Status](https://img.shields.io/badge/Status-In%20Development-orange)
+![Next.js](https://img.shields.io/badge/Next.js-16.0-black)
+![Supabase](https://img.shields.io/badge/Supabase-Auth%20%7C%20DB-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 
-本專案採用 **Clean Architecture** (整潔架構) 與 **Static Export** 模式構建，旨在提供高效、可維護且易於部署的前端應用。
+## ✨ 核心功能 (Features)
 
-- **核心目標**: 連結學生與教師，簡化預約流程，提升教學管理效率。
-- **主要特色**: RWD 響應式設計、即時預約系統、角色分流 (學生/教師/管理員)、數據儀表板。
-- **部署模式**: GitHub Pages (Static Export) + Supabase (Backend-as-a-Service)。
+### 👨‍🏫 教師端 (Teacher Portal)
+- **個人品牌頁面**: 自訂簡介、教學理念、專長標籤與作品集。
+- **課程管理**: 建立多樣化課程（一對一、小班制、影音課程），設定價格與時長。
+- **預約管理**: 查看與審核學生預約，支援 Google Calendar 雙向同步（開發中）。
+- **學生 CRM**: 管理學生資料、學習進度與課堂筆記。
+- **營收報表**: 視覺化圖表分析收入與課程熱門度。
 
-## 🛠 技術堆疊
+### 👨‍🎓 學生端 (Student Portal)
+- **找老師**: 透過標籤與關鍵字搜尋合適的家教。
+- **線上預約**: 直覺的行事曆介面，快速預約課程時段。
+- **學習歷程**: 查看過往上課記錄、評價與教師回饋。
+- **課表管理**: 整合個人學習行事曆。
 
-主要技術選型如下：
+### 🛡️ 管理員 (Admin)
+- **用戶管理**: 審核教師資格，管理違規用戶。
+- **系統設定**: 設定課程分類、標籤與全域參數。
 
-- **核心框架**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **語言**: [TypeScript](https://www.typescriptlang.org/)
-- **樣式系統**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **後端服務**: [Supabase](https://supabase.com/) (Auth, PostgreSQL DB, Storage)
-- **資料圖表**: [Chart.js](https://www.chartjs.org/)
-- **UI 組件**: 客製化設計系統 + [Geist Font](https://vercel.com/font)
-- **部署**: GitHub Actions -> GitHub Pages
+## 🛠️ 技術堆疊 (Tech Stack)
 
-## 🚀 功能模組與頁面路由
+- **Frontend Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Backend / Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Authentication**: Supabase Auth (SSR w/ Middleware)
+- **Deployment**: [Vercel](https://vercel.com/)
 
-專案結構清晰，依據使用者角色劃分為不同區域：
+## 🚀 快速開始 (Getting Started)
 
-### 🌐 公開頁面 (Public)
+### 前置需求
+- Node.js 20+
+- pnpm (推薦) 或 npm/yarn
+- 一個 Supabase 專案
 
-位於 `app/(public)`，無需登入即可訪問：
-
-- `/`: 首頁 (Landing Page)
-- `/auth/login`: 登入頁面
-- `/auth/register`: 註冊頁面
-- `/auth/reset-password`: 重設密碼
-- `/courses`: 課程探索列表
-- `/courses/[courseId]`: 課程詳細資訊
-- `/teachers`: 師資陣容介紹
-- `/legal/*`: 服務條款與隱私權政策
-
-### 👨‍🎓 學生專區 (Student Portal)
-
-位於 `app/student`，需學生權限：
-
-- `/student/dashboard`: 學生儀表板 (概況、下堂課提醒)
-- `/student/bookings`: 預約管理 (查看、取消、改期)
-- `/student/booking`: 新增預約流程
-- `/student/courses`: 我的課程 (已購買/已報名)
-- `/student/profile`: 個人資料與設定
-- `/student/progress`: 學習進度追蹤
-- `/student/notifications`: 系統通知
-
-### 👩‍🏫 教師後台 (Teacher Console)
-
-位於 `app/teacher`，需教師權限：
-
-- `/teacher/dashboard`: 教師儀表板 (營收概覽、近期課程)
-- `/teacher/courses`: 課程管理 (新增、編輯、上架、教案編寫)
-- `/teacher/bookings`: 預約審核與行事曆
-- `/teacher/students`: 學生 CRM (學員名單、學習紀錄)
-- `/teacher/reports`: 營收與數據報表
-- `/teacher/settings`: 教學設定 (預約規則、請假規則)
-- `/teacher/profile`: 講師個人檔案編輯
-- `/teacher/portfolio`: 作品集管理
-
-### 🛡 管理員後台 (Admin Panel)
-
-位於 `app/admin`，需管理員權限：
-
-- `/admin/dashboard`: 系統總覽
-- `/admin/teachers`: 教師帳號管理
-- `/admin/students`: 學生帳號管理
-- `/admin/class-types`: 課程類型設定
-- `/admin/tags`: 標籤管理
-
-## 🏁 快速開始
-
-### 1. 環境準備
-
-確保您已安裝 [Node.js](https://nodejs.org/) (建議 v20+) 和 [pnpm](https://pnpm.io/)。
-
-### 2. 安裝依賴
-
+### 1. 安裝專案
 ```bash
+git clone https://github.com/your-username/time-carve-web.git
+cd time-carve-web
 pnpm install
 ```
 
-### 3. 設定環境變數
-
-複製 `.env.example` 為 `.env.local` 並填入您的 Supabase 資訊：
+### 2. 設定環境變數
+複製 `.env.example` 並重新命名為 `.env.local`，填入您的 Supabase 憑證：
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+cp .env.example .env.local
 ```
 
-### 4. 啟動開發伺服器
+```env
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
+### 3. 啟動開發伺服器
 ```bash
 pnpm dev
 ```
-
 瀏覽器打開 [http://localhost:3000](http://localhost:3000) 即可看到畫面。
 
-### 5. 建置與部署
+## 📂 專案結構 (Project Structure)
 
-```bash
-pnpm build
+本專案採用 **Clean Architecture** 風格，將業務邏輯與 UI 分離。
+
+```
+src/
+├── app/                  # Next.js App Router 頁面
+│   ├── (public)/         # 公開頁面 (首頁, 課程列表)
+│   ├── student/          # 學生後台 (需登入)
+│   ├── teacher/          # 教師後台 (需登入)
+│   ├── admin/            # 管理員後台
+│   └── api/              # API Routes
+├── components/           # UI 組件
+│   ├── ui/               # 基礎原子組件 (Button, Input...)
+│   └── ...
+├── lib/                  # 核心邏輯 (Clean Architecture)
+│   ├── domain/           # 實體 (Entity) 與 介面 (Interface)
+│   ├── application/      # 應用層 (Use Cases)
+│   ├── infrastructure/   # 實作層 (Repositories, API Calls)
+│   ├── store/            # 狀態管理 (Zustand)
+│   └── supabase/         # Supabase Client 設定
+├── types/                # TypeScript 型別 (包含 DB Schema)
+└── middleware.ts         # 路由保護與 Session 管理
 ```
 
-此指令會執行 `next build` 並輸出靜態檔案至 `out/` 目錄，適用於靜態託管服務。
+## 🗄️ 資料庫開發 (Database Development)
 
-## ⚠️ 開發規範
+本專案依賴 Supabase。開發時請遵循以下流程：
 
-- **Static Export 限制**: 由於專案設定為靜態輸出，**禁止使用** Middleware (`middleware.ts`)、API Routes (`app/api/*`) 以及任何依賴 Node.js Runtime 的 Server Component 功能 (`cookies()`, `headers()`)。
-- **Supabase Migration**: 資料庫變更**必須**使用 CLI 指令 `supabase migration new <name>` 建立，禁止手動修改 Schema。
-- **Linting**: 提交程式碼前請確保通過 ESLint 檢查。
+1. **修改 Schema**: 使用 Supabase Migration。
+   ```bash
+   supabase migration new add_some_table
+   ```
+2. **套用變更**:
+   ```bash
+   supabase db reset # 本地開發
+   # 或
+   supabase db push # 推送至遠端 (小心使用)
+   ```
+3. **更新 TypeScript 型別**:
+   ```bash
+   supabase gen types typescript --local > src/types/database.types.ts
+   ```
 
----
+## 🤝 貢獻 (Contributing)
 
-© 2025 TimeCarve. All rights reserved.
+1. Fork此專案
+2. 建立您的 Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. 提交您的變更 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 開啟 Pull Request
+
+## 📄 授權 (License)
+
+Distributed under the MIT License. See `LICENSE` for more information.
