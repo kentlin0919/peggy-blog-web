@@ -104,6 +104,8 @@ export class SupabaseTeacherRepository implements TeacherRepository {
     if (profile.specialties !== undefined) teacherInfoUpdates.specialties = profile.specialties;
     if (profile.philosophyItems !== undefined) teacherInfoUpdates.philosophy_items = profile.philosophyItems;
     if (profile.isPublic !== undefined) teacherInfoUpdates.is_public = profile.isPublic;
+    if (profile.googleCalendarEnabled !== undefined) teacherInfoUpdates.google_calendar_enabled = profile.googleCalendarEnabled;
+    if (profile.lineNotifyEnabled !== undefined) teacherInfoUpdates.line_notify_enabled = profile.lineNotifyEnabled;
 
     // Execute updates in parallel
     const promises = [];

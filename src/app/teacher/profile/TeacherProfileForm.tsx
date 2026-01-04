@@ -252,6 +252,50 @@ export default function TeacherProfileForm({
               開啟後，學生將能在「找老師」頁面搜尋到您的檔案。
             </p>
           </div>
+
+          <div className="bg-white dark:bg-surface-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark">
+            <h3 className="font-bold text-slate-800 dark:text-white mb-4">
+              系統整合
+            </h3>
+            <div className="space-y-4">
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  Google Calendar 同步
+                </span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={profile.googleCalendarEnabled}
+                    onChange={(e) =>
+                      handleChange("googleCalendarEnabled", e.target.checked)
+                    }
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </div>
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer">
+                <span className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  LINE 通知
+                </span>
+                <div className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={profile.lineNotifyEnabled}
+                    onChange={(e) =>
+                      handleChange("lineNotifyEnabled", e.target.checked)
+                    }
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                </div>
+              </label>
+            </div>
+            <p className="text-xs text-text-sub mt-3">
+              啟用後可接收即時預約通知。
+            </p>
+          </div>
         </div>
 
         {/* Right Column: Key Info */}
@@ -327,6 +371,40 @@ export default function TeacherProfileForm({
                   placeholder="請介紹您的教學理念、經歷以及風格..."
                   className="w-full px-4 py-2 rounded-lg border border-border-light dark:border-border-dark bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                  教學專長 / 標籤
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {profile.specialties.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-2 hover:text-primary-dark"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    type="text"
+                    value={newSpecialty}
+                    onChange={(e) => setNewSpecialty(e.target.value)}
+                    onKeyDown={handleAddTag}
+                    placeholder="輸入後按 Enter 新增..."
+                    className="inline-flex min-w-[120px] px-3 py-1 rounded-full text-xs bg-transparent border border-dashed border-slate-300 dark:border-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+                <p className="text-xs text-text-sub">
+                  例如：多益金色證書、幼兒美語、商用英文 (建議 3-5 個)
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-6">

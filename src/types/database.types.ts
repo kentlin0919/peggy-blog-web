@@ -452,6 +452,7 @@ export type Database = {
           id: string
           identity_id: number | null
           is_active: boolean
+          is_first_login: boolean | null
           name: string
           updated_at: string
           phone: string | null
@@ -465,6 +466,7 @@ export type Database = {
           id: string
           identity_id?: number | null
           is_active?: boolean
+          is_first_login?: boolean | null
           name: string
           updated_at?: string
           phone?: string | null
@@ -478,6 +480,7 @@ export type Database = {
           id?: string
           identity_id?: number | null
           is_active?: boolean
+          is_first_login?: boolean | null
           name?: string
           updated_at?: string
           phone?: string | null
@@ -835,4 +838,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

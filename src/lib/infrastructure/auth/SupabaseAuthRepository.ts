@@ -117,7 +117,7 @@ export class SupabaseAuthRepository implements AuthRepository {
       id: supabaseUser.id,
       email: supabaseUser.email,
       role: supabaseUser.role, // from auth.users
-      emailConfirmedAt: supabaseUser.email_confirmed_at,
+      emailConfirmedAt: supabaseUser.email_confirmed_at || supabaseUser.confirmed_at,
       
       // Fields from user_info OR fallback
       name: userInfo?.name || userInfo?.full_name || supabaseUser.user_metadata?.name || '',
