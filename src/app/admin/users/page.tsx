@@ -54,7 +54,7 @@ export default function AdminUsersPage() {
       .from("user_info")
       .select(
         `*,
-        identity ( identity_id, name ),
+        identity:identity_id ( identity_id, name ),
         student_info ( id, student_code, teacher_code, created_at, updated_at ),
         teacher_info ( id, teacher_code, title, experience_years, base_price, is_public, bio, created_at, updated_at )
         `
@@ -130,6 +130,17 @@ export default function AdminUsersPage() {
       return matchesQuery && matchesStatus && matchesRole;
     });
   }, [users, searchQuery, statusFilter, roleFilter]);
+
+  const identityOptions = useMemo(() => {
+    if (identities.length > 0) return identities;
+    if (!selectedUser?.identity_id) return [];
+    return [
+      {
+        identity_id: selectedUser.identity_id,
+        name: ROLE_MAP[selectedUser.identity_id] || `身份 ${selectedUser.identity_id}`,
+      },
+    ];
+  }, [identities, selectedUser?.identity_id]);
 
   const showStudentSection = useMemo(() => {
     if (editing) return true;
@@ -457,9 +468,9 @@ export default function AdminUsersPage() {
                     />
                   </div>
                 )}
-                {(editing || formUser.identity_id) && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500">角色</label>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">角色</label>
+                  {editing ? (
                     <select
                       value={formUser.identity_id || ""}
                       onChange={(e) =>
@@ -470,18 +481,27 @@ export default function AdminUsersPage() {
                             : null,
                         }))
                       }
-                      disabled={!editing}
-                      className="mt-2 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-800"
+                      className="mt-2 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-200"
                     >
                       <option value="">未設定</option>
-                      {identities.map((identity) => (
+                      {identityOptions.map((identity) => (
                         <option key={identity.identity_id} value={identity.identity_id}>
                           {identity.name}
                         </option>
                       ))}
                     </select>
-                  </div>
-                )}
+                  ) : (
+                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-200">
+                      {selectedUser.identity?.name ||
+                        identities.find(
+                          (identity) =>
+                            identity.identity_id === selectedUser.identity_id
+                        )?.name ||
+                        ROLE_MAP[selectedUser.identity_id || 0] ||
+                        "未設定"}
+                    </div>
+                  )}
+                </div>
                 {editing && (
                   <div>
                     <label className="text-xs font-semibold text-gray-500">狀態</label>
